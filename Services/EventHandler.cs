@@ -223,11 +223,7 @@ public class EventHandler : DiscordClientService
             if (channel.Id == _globals.ArtChannel.Id) //art channel stuff
             {
                 IUserMessage reactedMessage = message.Value ?? (IUserMessage)await channel.Value.GetMessageAsync(message.Id);
-                if (reactedMessage.IsPinned || reaction.UserId == Client.CurrentUser.Id)
-                {
-                    return;
-                }
-                else //message is not pinned and bot already reacted
+                if (!(reactedMessage.IsPinned || reaction.UserId == Client.CurrentUser.Id)) //message is not pinned and bot already reacted
                 {
                     if (reaction.UserId == reactedMessage.Author.Id && reaction.Emote.Equals(Emotes.CrossMark))
                     {
@@ -236,24 +232,12 @@ public class EventHandler : DiscordClientService
                     else if (reactedMessage.Reactions.TryGetValue(Emotes.Pin, out ReactionMetadata metaData)
                         && metaData.IsMe && metaData.ReactionCount >= _pinOptions.CurrentValue.PinAmount) //is it a pin?
                     {
-                        IReadOnlyCollection<IMessage>? pinned = await channel.Value.GetPinnedMessagesAsync();
-                        if (pinned is not null && pinned.Count == 50)
-                        {
-                            IUserMessage? toUnpin = null;
-                            foreach (IMessage pinnedMessage in pinned)
-                            {
-                                if (toUnpin is null || pinnedMessage.Id < toUnpin.Id)
-                                {
-                                    toUnpin = (IUserMessage)pinnedMessage;
-                                }
-                            }
-                            await toUnpin!.UnpinAsync();
-                        }
-                        await reactedMessage.PinAsync();
                         await reactedMessage.RemoveReactionAsync(Emotes.Pin, Client.CurrentUser);
 
-                        var msg = (await channel.Value.GetMessagesAsync(1).FirstAsync()).First();
-                        await msg.DeleteAsync();
+                        EmbedBuilder embedBuilder = Utilities.QuoteUserMessage($"Post by {reactedMessage.Author.Username}", reactedMessage, ColorConstants.SpiritCyan,
+                            includeOriginChannel: false, includeDirectUserLink: false, includeMessageReference: false);
+
+                        await _messageUtilities.SendMessageWithFiles(_globals.StarBoardChannel, embedBuilder, reactedMessage);
 
                         using var db = _dbContextFactory.CreateDbContext();
                         Utilities.AddBadgeToUser(db, reactedMessage.Author, DbBadges.Pincushion);

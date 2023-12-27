@@ -45,6 +45,10 @@ public class Globals : DiscordClientService
     /// Channel for joins/leaves
     /// </summary>
     public ITextChannel MembersChannel { get; set; } = null!;
+    /// <summary>
+    /// Channel for pinned messages
+    /// </summary>
+    public ITextChannel StarBoardChannel { get; set; } = null!;
 
     public IRole MemberRole { get; set; } = null!;
     public IRole ImagesRole { get; set; } = null!;
@@ -78,6 +82,7 @@ public class Globals : DiscordClientService
         FeedbackChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.FeedbackChannelId);
         CommandsChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.CommandsChannelId);
         MembersChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.MembersChannelId);
+        StarBoardChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.StarBoardChannelId);
 
         MemberRole = MainGuild.GetRole(_botOptions.MemberRoleId);
         ImagesRole = MainGuild.GetRole(_botOptions.ImagesRoleId);
