@@ -49,6 +49,10 @@ public class Globals : DiscordClientService
     /// Channel for pinned messages
     /// </summary>
     public ITextChannel StarBoardChannel { get; set; } = null!;
+    /// <summary>
+    /// The channel for sending voice activity
+    /// </summary>
+    public ITextChannel VoiceActivityChannel { get; set; } = null!;
 
     public IRole MemberRole { get; set; } = null!;
     public IRole ImagesRole { get; set; } = null!;
@@ -84,6 +88,7 @@ public class Globals : DiscordClientService
         CommandsChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.CommandsChannelId);
         MembersChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.MembersChannelId);
         StarBoardChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.StarBoardChannelId);
+        VoiceActivityChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.VoiceActivityChannelId);
 
         MemberRole = MainGuild.GetRole(_botOptions.MemberRoleId);
         ImagesRole = MainGuild.GetRole(_botOptions.ImagesRoleId);

@@ -29,15 +29,36 @@ public class EventHandler : DiscordClientService
         _userJoinOptions = userJoinOptions;
         _messageUtilities = messageUtilities;
         _dbContextFactory = dbContextFactory;
+        _volatileData = volatileData;
+        _globals = globals;
+        _pinOptions = pinOptions;
 
         Client.AutoModActionExecuted += OnAutoModExecuted;
         Client.AuditLogCreated += OnAuditLogCreated;
         Client.UserJoined += OnUserJoined;
         Client.UserLeft += OnUserLeft;
         Client.ReactionAdded += OnReactionAdded;
-        _volatileData = volatileData;
-        _globals = globals;
-        _pinOptions = pinOptions;
+        Client.UserVoiceStateUpdated += OnVoiceStateChanged;
+    }
+
+    private Task OnVoiceStateChanged(SocketUser user, SocketVoiceState prevState, SocketVoiceState newState)
+    {
+        Task.Run(async () =>
+        {
+            EmbedBuilder embedBuilder = new EmbedBuilder()
+                .WithColor(ColorConstants.SpiritBlue)
+                .WithTitle("User changed voice channel")
+                .WithDescription($"From `{prevState.VoiceChannel?.Name ?? "Disconnected"}` to `{newState.VoiceChannel?.Name ?? "Disconnected"}`")
+                .WithCurrentTimestamp();
+
+            await _globals.VoiceActivityChannel.SendMessageAsync(embed: embedBuilder.Build());
+
+        }).ContinueWith(async t =>
+        {
+            var exceptionContext = new ExceptionContext();
+            await _exceptionReporter.NotifyExceptionAsync(t.Exception!.InnerException!, exceptionContext, "Exception while executing voice state change event", false);
+        }, TaskContinuationOptions.OnlyOnFaulted);
+        return Task.CompletedTask;
     }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.CompletedTask;
