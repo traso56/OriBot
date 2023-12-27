@@ -424,6 +424,18 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
             return;
         }
 
+        bool? response = await MessageUtilities.UserConfirmation(Context, Context.User,
+            $"This will unban the user: {target.Username}\n Confirm", MessageUtilities.ResponseType.FollowUp);
+
+        if (response != true)
+        {
+            await ModifyOriginalResponseAsync(m =>
+            {
+                m.Content = "Command cancelled";
+                m.Components = new ComponentBuilder().Build();
+            });
+        }
+
         await Context.Guild.RemoveBanAsync(target.Id);
 
         dbPunishment.Reason += $" (This ban was removed for the following reason: {reason})";
@@ -441,7 +453,11 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
 
         await Globals.LogChannel.SendMessageAsync(embed: embedBuilder.Build());
 
-        await FollowupAsync("Success");
+        await ModifyOriginalResponseAsync(m =>
+        {
+            m.Content = "Success";
+            m.Components = new ComponentBuilder().Build();
+        });
     }
     [ModCommand]
     [SlashCommand("note", "Adds a note to a user")]
