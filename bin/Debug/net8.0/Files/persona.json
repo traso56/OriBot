@@ -1,0 +1,10 @@
+{
+  "commands.basic.profile.joinedat": "Joined at",
+  "commands.basic.profile.createdat": "Created at",
+  "commands.basic.profile.profileof": "Profile of {0}",
+  "commands.basic.help.button1": "Basic commands",
+  "commands.basic.help.sbuilderoptional": "(optional)",
+  "commands.basic.help.sbuilderdefault": "(default: {0})",
+  "commands.basic.help.sbuildernone": "None",
+  "commands.basic.help.sbuilderarguments": "{0}\\n*Arguments*: {1}"
+}
