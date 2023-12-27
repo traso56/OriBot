@@ -17,6 +17,9 @@ public class BackgroundTasks : DiscordClientService
     private readonly VolatileData _volatileData;
     private readonly Globals _globals;
 
+    private string[] _statuses = null!;
+    private int _currentStatusIndex = 0;
+
     public BackgroundTasks(DiscordSocketClient client, ILogger<DiscordClientService> logger, IOptionsMonitor<CooldownOptions> cooldownOptions,
         IDbContextFactory<SpiritContext> dbContextFactory, ExceptionReporter exceptionReporter, VolatileData volatileData, Globals globals)
         : base(client, logger)
@@ -53,6 +56,9 @@ public class BackgroundTasks : DiscordClientService
         foreach (var dbTicket in dbTickets)
             _volatileData.TicketThreads.TryAdd(dbTicket.TicketId, dbTicket.TicketUserId);
 
+        // load status messages
+        _statuses = File.ReadAllLines(Utilities.GetLocalFilePath("BotStatuses.txt"));
+
         Logger.LogInformation("Startup task ended work");
         return Task.CompletedTask;
     }
@@ -63,6 +69,11 @@ public class BackgroundTasks : DiscordClientService
             Logger.LogInformation("Rare task begin work");
             try
             {
+                // change status
+                await Client.SetCustomStatusAsync(_statuses[_currentStatusIndex++]);
+                if (_currentStatusIndex >= _statuses.Length)
+                    _currentStatusIndex = 0;
+
                 using var db = _dbContextFactory.CreateDbContext();
 
                 // check tickets for timeout

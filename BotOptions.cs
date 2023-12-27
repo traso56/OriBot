@@ -20,6 +20,7 @@ public class BotOptions
     public required ulong CommandsChannelId { get; set; }
     public required ulong MembersChannelId { get; set; }
     public required ulong StarBoardChannelId { get; set; }
+    public required ulong VoiceActivityChannelId { get; set; }
 
     public required ulong MemberRoleId { get; set; }
     public required ulong ImagesRoleId { get; set; }
