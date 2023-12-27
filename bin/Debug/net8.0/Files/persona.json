@@ -1,4 +1,13 @@
 {
+  "commands.guildmanagement.ticket.feedbackchannel.created": "Ticket created: {0}",
+  "commands.guildmanagement.ticket.hello": "Hello {0}, what can we help you with?",
+  "commands.guildmanagement.ticket.thread.created": "{0} a new ticket has been created: {1}",
+  "commands.guildmanagement.ticket.already": "You have an active ticket",
+  "commands.guildmanagement.welcomebutton.success": "Successfully joined!",
+  "commands.guildmanagement.welcomebutton.alreadyclicked": "You have already clicked this button",
+  "commands.guildmanagement.addbadgetouser.modifyresponse": "Added {0} to {1}",
+  "commands.basic.profile.embed.moderatorbadgedescription": "I'm a moderator of this community",
+  "commands.basic.profile.embed.moderatorbadgename": "{0} Moderator",
   "commands.basic.profile.joinedat": "Joined at",
   "commands.basic.profile.createdat": "Created at",
   "commands.basic.profile.profileof": "Profile of {0}",
@@ -6,5 +15,8 @@
   "commands.basic.help.sbuilderoptional": "(optional)",
   "commands.basic.help.sbuilderdefault": "(default: {0})",
   "commands.basic.help.sbuildernone": "None",
-  "commands.basic.help.sbuilderarguments": "{0}\\n*Arguments*: {1}"
+  "commands.basic.help.sbuilderarguments": "{0}\\n*Arguments*: {1}",
+  "commands.guildmanagement.createbadge.response": "Badge {0} added",
+  "commands.guildmanagement.addbadgetouser.selectmenuplaceholder": "Select a badge",
+  "commands.guildmanagement.addbadgetouser.followup": "Badges"
 }
