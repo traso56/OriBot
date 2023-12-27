@@ -312,26 +312,6 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
         };
         db.Punishments.Add(dbWarnPunishment);
 
-        int warnCount = db.Punishments.Count(p => p.PunishedId == target.Id
-            && p.Type == PunishmentType.Warn && p.Expiry > DateTime.Now);
-        if (warnCount >= 3)
-        {
-            string banReason = "3 active warns. Latest was: " + reason;
-            var dbBanPunishment = new Punishment()
-            {
-                Type = PunishmentType.Ban,
-                Reason = banReason,
-                Issued = DateTime.Now,
-                Expiry = null,
-                CheckForExpiry = false,
-                Punished = punishedDbUser,
-                Issuer = issuerDbUser
-            };
-            db.Punishments.Add(dbBanPunishment);
-
-            await Context.Guild.AddBanAsync(target, reason: "User has been warned 3 times");
-            embedBuilder.AddField($"{target.Username} has been banned", $"Reason: enough warns for ban");
-        }
         db.SaveChanges();
 
         if (notifyIn is Notify.UserDm)
