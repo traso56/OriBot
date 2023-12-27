@@ -223,7 +223,7 @@ public class EventHandler : DiscordClientService
             if (channel.Id == _globals.ArtChannel.Id) //art channel stuff
             {
                 IUserMessage reactedMessage = message.Value ?? (IUserMessage)await channel.Value.GetMessageAsync(message.Id);
-                if (!(reactedMessage.IsPinned || reaction.UserId == Client.CurrentUser.Id)) //message is not pinned and bot already reacted
+                if (reaction.UserId != Client.CurrentUser.Id) //message is not pinned and bot already reacted
                 {
                     if (reaction.UserId == reactedMessage.Author.Id && reaction.Emote.Equals(Emotes.CrossMark))
                     {
