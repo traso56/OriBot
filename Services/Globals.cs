@@ -63,7 +63,7 @@ public class Globals : DiscordClientService
     public Globals(DiscordSocketClient client, ILogger<DiscordClientService> logger, IOptions<BotOptions> options, Personality personality)
         : base(client, logger)
     {
-        personality.test();
+        //personality.
         _botOptions = options.Value;
     }
 

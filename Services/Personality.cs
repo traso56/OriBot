@@ -21,7 +21,7 @@ public class Personality
         _logger = logger;
         try
         {
-            privateDict = JsonSerializer.Deserialize<Dictionary<string, string>>(Path.Combine(AppContext.BaseDirectory, "Files",options.Value.PersonalityFile))!;
+            privateDict = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Files", options.Value.PersonalityFile)))!;
         } catch (Exception e){
             _logger.LogCritical("Personality failed to load, please check this bug: " + e.StackTrace);
         }
