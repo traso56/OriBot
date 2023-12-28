@@ -434,6 +434,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
                 m.Content = "Command cancelled";
                 m.Components = new ComponentBuilder().Build();
             });
+            return;
         }
 
         await Context.Guild.RemoveBanAsync(target.Id);
