@@ -94,7 +94,9 @@ internal static class Program
                         .AddSingleton<ExceptionReporter>()
                         .AddSingleton<VolatileData>()
                         .AddSingleton<MessageUtilities>()
-                        .AddSingleton<PaginatorFactory>();
+                        .AddSingleton<PaginatorFactory>()
+                        .AddSingleton<Personality>()
+                        ;
                 })
                 .UseSerilog()
                 .UseConsoleLifetime()

@@ -17,6 +17,8 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
     public required MessageUtilities MessageUtilities { get; set; }
     public required VolatileData VolatileData { get; set; }
 
+    public required Personality personality { get; set; }
+
     /********************************************
         BADGES
     ********************************************/
@@ -45,7 +47,8 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
             db.Badges.Add(dbBadge);
         }
         db.SaveChanges();
-        await FollowupAsync($"badge {name} added");
+        // en-US: $"Badge {name} added"
+        await FollowupAsync(personality.Format("commands.guildmanagement.createbadge.response"));
     }
     [RequireOwner]
     [SlashCommand("addbadgetouser", "adds a badge to an user")]
@@ -58,7 +61,8 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
         var dbBadges = db.Badges.ToList();
 
         var selectMenuBuilder = new SelectMenuBuilder()
-            .WithPlaceholder("Select a badge")
+            // en-US: Select a badge
+            .WithPlaceholder(personality.Format("commands.guildmanagement.addbadgetouser.selectmenuplaceholder"))
             .WithCustomId("badgesMenu")
             .WithMinValues(1)
             .WithMaxValues(1);
@@ -67,6 +71,7 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
         {
             selectMenuBuilder.AddOption(dbBadges[i].BadgeName, i.ToString());
         }
+        // en-US: Badges
         await FollowupAsync("Badges", components: new ComponentBuilder().WithSelectMenu(selectMenuBuilder).Build());
         var question = await GetOriginalResponseAsync();
         var selectedOption = await MessageUtilities.AwaitComponentAsync(question.Id, Context.User.Id, MessageUtilities.ComponentType.SelectMenu);
@@ -82,8 +87,8 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
 
         dbUser.Badges = [dbBadge];
         db.SaveChanges();
-
-        await question.ModifyAsync(x => x.Content = $"Added {dbBadge.BadgeName} to {target.Username}");
+        // en-US: $"Added {dbBadge.BadgeName} to {target.Username}"
+        await question.ModifyAsync(x => x.Content = personality.Format("commands.guildmanagement.addbadgetouser.modifyresponse",dbBadge.BadgeName,target.Username));
     }
     /********************************************
         WELCOME BUTTON
@@ -99,7 +104,8 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
 
         if (guildUser.Roles.Contains(Globals.MemberRole))
         {
-            await FollowupAsync("You have already clicked this button", ephemeral: true);
+            // en-US: "You have already clicked this button"
+            await FollowupAsync(personality.Format("commands.guildmanagement.welcomebutton.alreadyclicked"), ephemeral: true);
             return;
         }
 
@@ -123,7 +129,8 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
             db.SaveChanges();
         }
 
-        await FollowupAsync("Successfully joined!", ephemeral: true);
+        // en-US: "Successfully joined!"
+        await FollowupAsync(personality.Format("commands.guildmanagement.welcomebutton.success"), ephemeral: true);
     }
     /********************************************
         USER COMMANDS
@@ -137,13 +144,18 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
 
         if (db.Tickets.Any(t => t.TicketUserId == Context.User.Id))
         {
-            await FollowupAsync("You have an active ticket");
+            // en-US: "You have an active ticket"
+            await FollowupAsync(personality.Format("commands.guildmanagement.ticket.already"));
             return;
         }
 
         IThreadChannel thread = await Globals.FeedbackChannel.CreateThreadAsync($"{Context.User}: {reason}", ThreadType.PrivateThread, invitable: false);
-        await Globals.FeedbackChannel.SendMessageAsync($"{Globals.ModRole.Mention} a new ticket has been created: {thread.Mention}");
-        await thread.SendMessageAsync($"Hello {Context.User.Mention}, what can we help you with?");
+
+        // en-US: $"{Globals.ModRole.Mention} a new ticket has been created: {thread.Mention}"
+        await Globals.FeedbackChannel.SendMessageAsync(personality.Format("commands.guildmanagement.ticket.created", Globals.ModRole.Mention,thread.Mention));
+
+        // en-US: $"Hello {Context.User.Mention}, what can we help you with?"
+        await thread.SendMessageAsync(personality.Format("commands.guildmanagement.ticket.thread.hello",Context.User.Mention));
 
         var dbTicket = new Ticket
         {
@@ -155,6 +167,7 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
 
         VolatileData.TicketThreads.TryAdd(thread.Id, Context.User.Id);
 
-        await FollowupAsync($"Ticket created: {Globals.FeedbackChannel.Mention}");
+        // en-US: $"Ticket created: {Globals.FeedbackChannel.Mention}"
+        await FollowupAsync(personality.Format("commands.guildmanagement.ticket.feedbackchannel.created", Globals.FeedbackChannel.Mention));
     }
 }

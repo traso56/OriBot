@@ -60,9 +60,10 @@ public class Globals : DiscordClientService
 
     private readonly BotOptions _botOptions;
 
-    public Globals(DiscordSocketClient client, ILogger<DiscordClientService> logger, IOptions<BotOptions> options)
+    public Globals(DiscordSocketClient client, ILogger<DiscordClientService> logger, IOptions<BotOptions> options, Personality personality)
         : base(client, logger)
     {
+        //personality.
         _botOptions = options.Value;
     }
 

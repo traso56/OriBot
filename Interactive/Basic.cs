@@ -16,6 +16,8 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
     public required MessageUtilities MessageUtilities { get; set; }
     public required IDbContextFactory<SpiritContext> DbContextFactory { get; set; }
 
+    public required Personality personality { get; set; }
+
     [SlashCommand("help", "Gives help (hopefully)")]
     public async Task Help()
     {
@@ -26,7 +28,8 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
         var buttonBuilder = new ComponentBuilder()
             .WithButton("Basic commands", "Basic");
 
-        await RespondAsync("Here's a list of commands and their description:", components: buttonBuilder.Build());
+        // en-US: Basic commands
+        await RespondAsync(personality.Format("commands.basic.help.button1"), components: buttonBuilder.Build());
         var infoMessage = await GetOriginalResponseAsync();
         while (true)
         {
@@ -52,16 +55,20 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
                 {
                     sbuilder.Append(par.Name);
                     if (!par.IsRequired)
-                        sbuilder.Append("(optional)");
+                        // en-US: (optional)
+                        sbuilder.Append(personality.Format("commands.basic.help.sbuilderoptional"));
                     if (par.DefaultValue is not null && par.DefaultValue.ToString() != "")
-                        sbuilder.Append($"(default: {par.DefaultValue})");
+                        // en-US: (default: {par.DefaultValue})
+                        sbuilder.Append(personality.Format("commands.basic.help.sbuilderdefault",par.DefaultValue.ToString()!));
                     sbuilder.Append(", ");
                 }
                 if (sbuilder.Length == 0)
-                    sbuilder.Append("None");
+                    sbuilder.Append(personality.Format("commands.basic.help.sbuildernone"));
                 else
                     sbuilder.Length -= 2;
-                embedBuilder.AddField(command.Name, $"{command.Description}\n*Arguments*: {sbuilder}");
+                //embedBuilder.AddField(command.Name, $"{command.Description}\n*Arguments*: {sbuilder}");
+                //en-US: $"{command.Description}\n*Arguments*: {sbuilder}"
+                embedBuilder.AddField(command.Name, personality.Format("commands.basic.help.sbuilderarguments", command.Description,sbuilder.ToString()));
             }
 
             await infoMessage.ModifyAsync(m => m.Embed = embedBuilder.Build());
@@ -86,14 +93,19 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
         EmbedBuilder embedBuilder = new EmbedBuilder()
             .WithColor(ColorConstants.SpiritBlue)
             .AddUserAvatar(user)
-            .WithTitle("Profile of " + user)
-            .AddField("Created at", TimestampTag.FromDateTimeOffset(user.CreatedAt, TimestampTagStyles.LongDate), true)
-            .AddField("Joined at", TimestampTag.FromDateTimeOffset(user.JoinedAt!.Value, TimestampTagStyles.LongDate), false);
+            // en-US: Profile of
+            .WithTitle(personality.Format("commands.basic.profile.profileof",user.ToString()))
+            // en-US: Created at
+            .AddField(personality.Format("commands.basic.profile.createdat"), TimestampTag.FromDateTimeOffset(user.CreatedAt, TimestampTagStyles.LongDate), true)
+            // en-US: Joined at
+            .AddField(personality.Format("commands.basic.profile.joinedat"), TimestampTag.FromDateTimeOffset(user.JoinedAt!.Value, TimestampTagStyles.LongDate), false);
 
         if (user.GuildPermissions.BanMembers)
         {
             IEmote sirenEmote = new Emoji("🚨");
-            embedBuilder.AddField($"{sirenEmote} Moderator", "I'm a moderator of this community");
+            // en-US: $"{sirenEmote} Moderator"
+            // en-US: I'm a moderator of this community
+            embedBuilder.AddField(personality.Format("commands.basic.profile.embed.moderatorbadgename",sirenEmote.ToString()!), personality.Format("commands.basic.profile.embed.moderatorbadgedescription"));
         }
         if (dbUser is not null)
             foreach (var userBadge in dbUser.UserBadges)
