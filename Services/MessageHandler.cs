@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OriBot.Utility;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
@@ -209,6 +210,9 @@ public partial class MessageHandler : DiscordClientService
                 else if (context.Channel.Id == _globals.CommandsChannel.Id)
                 {
                     await CommandsChannelMessage(context);
+
+
+                    var mods = ((SocketGuild)_globals.MainGuild).Users.Where(u => u.Roles.Contains(_globals.ModRole)).ToArray();
                 }
             }
         }).ContinueWith(async t =>

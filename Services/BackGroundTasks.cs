@@ -69,11 +69,6 @@ public class BackgroundTasks : DiscordClientService
             Logger.LogInformation("Rare task begin work");
             try
             {
-                // change status
-                await Client.SetCustomStatusAsync(_statuses[_currentStatusIndex++]);
-                if (_currentStatusIndex >= _statuses.Length)
-                    _currentStatusIndex = 0;
-
                 using var db = _dbContextFactory.CreateDbContext();
 
                 // check tickets for timeout
@@ -158,7 +153,10 @@ public class BackgroundTasks : DiscordClientService
             Logger.LogInformation("Frequent task begin work");
             try
             {
-                // frequent task here
+                // change status
+                await Client.SetCustomStatusAsync(_statuses[_currentStatusIndex++]);
+                if (_currentStatusIndex >= _statuses.Length)
+                    _currentStatusIndex = 0;
             }
             catch (Exception e)
             {

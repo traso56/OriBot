@@ -69,33 +69,6 @@ public class MessageUtilities
             }
         }
     }
-    public async Task FakeBotComponentAsync(ulong messageID, ComponentType type, CancellationToken cancellationToken, int timeOutSeconds)
-    {
-        Task waiter = Task.Delay(timeOutSeconds * 1000, cancellationToken);
-
-        if (type == ComponentType.Button)
-            _client.ButtonExecuted += OnComponentReceived;
-        else if (type == ComponentType.SelectMenu)
-            _client.SelectMenuExecuted += OnComponentReceived;
-
-        try
-        { await waiter; }
-        catch (TaskCanceledException)
-        { /* task cancelled */ }
-        finally
-        {
-            if (type == ComponentType.Button)
-                _client.ButtonExecuted -= OnComponentReceived;
-            else if (type == ComponentType.SelectMenu)
-                _client.SelectMenuExecuted -= OnComponentReceived;
-        }
-
-        async Task OnComponentReceived(SocketMessageComponent component)
-        {
-            if (component.Message.Id == messageID)
-                await component.RespondAsync(_componentNegativeResponsesOptions.CurrentValue.GetRandomResponse(), ephemeral: true);
-        }
-    }
     public async Task AwaitComponentMultipleAsync(ulong messageID, Dictionary<ulong, string?> choices, ComponentType type, int delayInSeconds = 15)
     {
         int usersLeftToRespond = choices.Count(u => u.Value is null);
