@@ -8,6 +8,8 @@ using Microsoft.Extensions.Options;
 using OriBot.Utility;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading.Channels;
+
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace OriBot.Services;
@@ -210,6 +212,11 @@ public partial class MessageHandler : DiscordClientService
                 {
                     await CommandsChannelMessage(context);
                 }
+                else if (message.Content.Contains($"<@&{_botOptions.AnyModRoleID}>"))
+                {
+                    await AnyModPingHandler(context);
+                }
+
             }
         }).ContinueWith(async t =>
         {
@@ -253,6 +260,28 @@ public partial class MessageHandler : DiscordClientService
         if (GreetingRegex().IsMatch(context.Message.Content))
         {
             await context.Message.ReplyAsync("Hello there! I hope you have a great day " + Emotes.OriHeart);
+        }
+    }
+
+    private async Task AnyModPingHandler(SocketCommandContext context)
+    {
+        var guild = context.Guild;
+        var channel = context.Channel;
+        var moderators = guild.Users
+                .Where(x =>
+                x.GuildPermissions.BanMembers &&
+                x.Status != Discord.UserStatus.Offline &&
+                !x.IsBot
+                )
+                .ToList();
+        if (!moderators.Any())
+        {
+            await channel.SendMessageAsync("<@&" + _botOptions.ModRoleId + ">, I have pinged all moderators for you.");
+        }
+        else
+        {
+            var moderator = moderators[(int)Math.Round(Random.Shared.NextDouble() * (moderators.Count - 1))];
+            await channel.SendMessageAsync("<@" + moderator.Id + ">, Will be here to assist you.");
         }
     }
     /********************************************

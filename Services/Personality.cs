@@ -14,16 +14,17 @@ using OriBot;
 public class Personality
 {
     private readonly Dictionary<string, string> privateDict = new Dictionary<string, string>();
-    private readonly ILogger<DiscordClientService> _logger = null!;
+    private readonly ILogger<Personality> _logger = null!;
 
-    public Personality(IOptions<BotOptions> options, ILogger<DiscordClientService> logger)
+    public Personality(IOptions<BotOptions> options, ILogger<Personality> logger)
     {
         _logger = logger;
+
         try
         {
             privateDict = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Files", options.Value.PersonalityFile)))!;
         } catch (Exception e){
-            _logger.LogCritical("Personality failed to load, please check this bug: " + e.StackTrace);
+            _logger.LogCritical(e,"Personality failed to load: ");
         }
     }
 
@@ -31,7 +32,7 @@ public class Personality
     {
         if (!privateDict.ContainsKey(key))
         {
-            _logger.LogWarning("Personality translation key not found: " +  key);
+            _logger.LogWarning("Personality translation key not found: {key}",key);
             return key;
         } else
         {
@@ -43,7 +44,7 @@ public class Personality
     {
         if (!privateDict.ContainsKey(key))
         {
-            _logger.LogWarning("Personality translation key not found: " + key);
+            _logger.LogWarning("Personality translation key not found: {key}", key);
             return key;
         }
         else

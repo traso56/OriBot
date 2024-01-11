@@ -87,7 +87,9 @@ internal static class Program
                         .AddHostedService<MessageHandler>()
                         .AddHostedService<InteractionHandler>()
                         .AddHostedService<BackgroundTasks>()
+                        .AddHostedService<MemberManipulationHandler>()
                         .AddHostedService<Services.EventHandler>()
+                        
                         // singletons
                         .AddSingleton<Globals>()
                         .AddHostedService<HostedServiceStarter<Globals>>()

@@ -15,7 +15,6 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
     public required InteractionService InteractionService { get; set; }
     public required MessageUtilities MessageUtilities { get; set; }
     public required IDbContextFactory<SpiritContext> DbContextFactory { get; set; }
-
     public required Personality personality { get; set; }
 
     [SlashCommand("help", "Gives help (hopefully)")]

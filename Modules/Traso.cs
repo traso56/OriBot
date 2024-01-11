@@ -25,7 +25,7 @@ public class Traso : ModuleBase
         await ReplyAsync("Stopping systems");
         ApplicationLifetime.StopApplication();
     }
-    [RequireOwner]
+    
     [Command("register")]
     public async Task Register()
     {

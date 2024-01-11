@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OriBot.Utility;
+
+using System.Diagnostics.Metrics;
 using System.Threading.Channels;
 using static OriBot.Interactive.Moderation;
 
@@ -19,6 +21,15 @@ public class EventHandler : DiscordClientService
     private readonly VolatileData _volatileData;
     private readonly Globals _globals;
     private readonly IOptionsMonitor<PinOptions> _pinOptions;
+
+    public enum VoiceActivityEventType
+    {
+        Leave,
+        Join,
+        Move,
+        Other
+    }
+
 
     public EventHandler(DiscordSocketClient client, ILogger<EventHandler> logger, ExceptionReporter exceptionReporter, IOptionsMonitor<UserJoinOptions> userJoinOptions,
         MessageUtilities messageUtilities, IDbContextFactory<SpiritContext> dbContextFactory, VolatileData volatileData, Globals globals
@@ -41,15 +52,66 @@ public class EventHandler : DiscordClientService
         Client.UserVoiceStateUpdated += OnVoiceStateChanged;
     }
 
-    private Task OnVoiceStateChanged(SocketUser user, SocketVoiceState prevState, SocketVoiceState newState)
+    private string GenerateLink(ulong guildid, ulong channelid)
     {
+        return $"https://discord.com/channels/{guildid}/{channelid}";
+    }
+
+    private Task OnVoiceStateChanged(SocketUser user, SocketVoiceState before, SocketVoiceState after)
+    {
+        var eventype = VoiceActivityEventType.Other;
+
+        if (after.VoiceChannel == before.VoiceChannel)
+        {
+            eventype = VoiceActivityEventType.Other;
+        }
+        else if (after.VoiceChannel == null)
+        {
+            eventype = VoiceActivityEventType.Leave;
+        }
+        else if (before.VoiceChannel == null)
+        {
+            eventype = VoiceActivityEventType.Join;
+        }
+        else if (before.VoiceChannel != after.VoiceChannel)
+        {
+            eventype = VoiceActivityEventType.Move;
+        }
+        if (eventype == VoiceActivityEventType.Other)
+        {
+            return Task.CompletedTask;
+        }
+
+
         Task.Run(async () =>
         {
             EmbedBuilder embedBuilder = new EmbedBuilder()
                 .WithColor(ColorConstants.SpiritBlue)
-                .WithTitle("User changed voice channel")
-                .WithDescription($"From `{prevState.VoiceChannel?.Name ?? "Disconnected"}` to `{newState.VoiceChannel?.Name ?? "Disconnected"}`")
                 .WithCurrentTimestamp();
+            embedBuilder = embedBuilder.WithAuthor(user);
+            switch (eventype)
+            {
+                case VoiceActivityEventType.Leave:
+
+                    embedBuilder = embedBuilder.WithTitle("This user left a voice channel")
+                    .AddField("Voice channel", $"{GenerateLink(before.VoiceChannel!.Guild.Id, before.VoiceChannel.Id)} / ({before.VoiceChannel.Id})");
+                    
+                    break;
+                case VoiceActivityEventType.Join:
+                    embedBuilder = embedBuilder.WithTitle("This user joined a voice channel")
+                    .AddField("Voice channel", $"{GenerateLink(after.VoiceChannel!.Guild.Id, after.VoiceChannel.Id)} / ({after.VoiceChannel!.Id})");
+                    
+                    break;
+                case VoiceActivityEventType.Move:
+                    embedBuilder = embedBuilder.WithTitle("This user moved between voice channels")
+                    .AddField("Previous voice channel", $"{GenerateLink(before.VoiceChannel!.Guild.Id, before.VoiceChannel.Id)} / ({before.VoiceChannel.Id})")
+                    .AddField("New voice channel", $"{GenerateLink(after.VoiceChannel!.Guild.Id, after.VoiceChannel.Id)} / ({after.VoiceChannel.Id})");
+                    
+                    break;
+                default:
+                    break;
+            }
+
 
             await _globals.VoiceActivityChannel.SendMessageAsync(embed: embedBuilder.Build());
 

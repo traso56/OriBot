@@ -208,7 +208,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
                     $"**Issued:** {Utilities.FullDateTimeStamp((DateTimeOffset)log.Issued)}\n" +
                     $"**Expiry:** {(log.Expiry is not null ? Utilities.FullDateTimeStamp((DateTimeOffset)log.Expiry) : "`Never`")}\n" +
                     $"**Reason:** {log.Reason}\n" +
-                    $"**Punishment ID: {log.PunishmentId}");
+                    $"**Punishment ID: {log.PunishmentId}**");
             }
             embedBuilder.WithFooter($"Page {page}/{totalPages}");
 
@@ -631,7 +631,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
             return;
         }
         var possiblekeys = new List<AutocompleteResult>();
-        foreach (var item in db.Punishments.Where(x => x.PunishedId == (targetoption.First().Value as SocketGuildUser)!.Id)) 
+        foreach (var item in db.Punishments.Where(x => x.PunishedId == ulong.Parse((string)targetoption.First().Value))) 
         {
             possiblekeys.Add(new AutocompleteResult($"Punishment ID: {item.PunishmentId}, type: {item.Type}", item.PunishmentId));
         }
