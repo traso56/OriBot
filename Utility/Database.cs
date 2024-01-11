@@ -19,6 +19,7 @@ public class SpiritContext : DbContext
     public DbSet<Punishment> Punishments { get; set; }
     public DbSet<PendingImageRole> PendingImageRoles { get; set; }
     public DbSet<Ticket> Tickets { get; set; }
+    public DbSet<ApprovedIdea> ApprovedIdeas { get; set; }
 
     public SpiritContext(DbContextOptions<SpiritContext> options)
         : base(options)
@@ -71,9 +72,10 @@ public class Badge
 {
     public int BadgeId { get; set; }
 
-    public required string BadgeName { get; set; }
-    public required string BadgeDescription { get; set; }
-    public required string BadgeEmote { get; set; }
+    public required string Name { get; set; }
+    public required string Description { get; set; }
+    public required string Emote { get; set; }
+    public required int Experience { get; set; }
 
     public List<UserBadge> UserBadges { get; set; }
     public List<User> Users { get; set; }
@@ -87,6 +89,15 @@ public class UserBadge
     public required Badge Badge { get; set; }
 
     public required int Count { get; set; }
+}
+public class ApprovedIdea
+{
+    public int ApprovedIdeaId { get; set; }
+
+    public required string Idea { get; set; }
+
+    public ulong UserId { get; set; }
+    public required User User { get; set; }
 }
 public class Punishment
 {

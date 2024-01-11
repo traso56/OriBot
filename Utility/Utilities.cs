@@ -142,7 +142,7 @@ public static class Utilities
     /// <param name="badgeName">The name of the badge to give.</param>
     public static void AddBadgeToUser(SpiritContext db, IUser user, string badgeName)
     {
-        var dbBadge = db.Badges.Single(b => b.BadgeName == badgeName);
+        var dbBadge = db.Badges.Single(b => b.Name == badgeName);
         var dbUser = db.Users.FindOrCreate(user);
         db.Entry(dbUser).Collection(u => u.UserBadges).Load();
         var currentBadges = dbUser.UserBadges.Find(ub => ub.BadgeId == dbBadge.BadgeId);
@@ -160,7 +160,7 @@ public static class Utilities
     /// <param name="badgeName">The name of the badge to remove.</param>
     public static void RemoveBadgeFromUser(SpiritContext db, IUser user, string badgeName)
     {
-        var dbBadge = db.Badges.Single(b => b.BadgeName == badgeName);
+        var dbBadge = db.Badges.Single(b => b.Name == badgeName);
         var dbUser = db.Users.FindOrCreate(user);
         db.Entry(dbUser).Collection(u => u.UserBadges).Load();
         var currentBadges = dbUser.UserBadges.Find(ub => ub.BadgeId == dbBadge.BadgeId);

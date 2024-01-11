@@ -76,6 +76,19 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
     [SlashCommand("profile", "Gets the information of someone")]
     public async Task UserInfo(SocketGuildUser? user = null)
     {
+        int CalculateLevel(int experience)
+        {
+            int level = 0;
+            double needed = 40;
+            while (experience > needed)
+            {
+                level++;
+                experience -= (int)needed;
+                needed *= 1.0025;
+            }
+            return level;
+        }
+
         await DeferAsync();
         user = (SocketGuildUser)(user ?? Context.User);
 
@@ -83,12 +96,21 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
 
         var dbUser = db.Users.Include(u => u.UserBadges).ThenInclude(ub => ub.Badge).FirstOrDefault(u => u.UserId == user.Id);
 
+        int userXp = 0;
+        if (dbUser is not null)
+            foreach (var dbUserBadge in dbUser.UserBadges)
+            {
+                userXp += dbUserBadge.Badge.Experience * dbUserBadge.Count;
+            }
+
         EmbedBuilder embedBuilder = new EmbedBuilder()
             .WithColor(ColorConstants.SpiritBlue)
             .AddUserAvatar(user)
             .WithTitle("Profile of " + user)
             .AddField("Created at", TimestampTag.FromDateTimeOffset(user.CreatedAt, TimestampTagStyles.LongDate), true)
-            .AddField("Joined at", TimestampTag.FromDateTimeOffset(user.JoinedAt!.Value, TimestampTagStyles.LongDate), false);
+            .AddField("Joined at", TimestampTag.FromDateTimeOffset(user.JoinedAt!.Value, TimestampTagStyles.LongDate), true)
+            .AddField("Experience", userXp)
+            .AddField("Level", CalculateLevel(userXp), true);
 
         if (user.GuildPermissions.BanMembers)
         {
@@ -100,7 +122,7 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
             {
                 var badge = userBadge.Badge;
                 string romanNumeral = userBadge.Count > 1 ? " " + Utilities.IntToRoman(userBadge.Count) : "";
-                embedBuilder.AddField($"{badge.BadgeEmote} {badge.BadgeName}{romanNumeral}", badge.BadgeDescription, true);
+                embedBuilder.AddField($"{badge.Emote} {badge.Name}{romanNumeral}", badge.Description, true);
             }
 
         await FollowupAsync(embed: embedBuilder.Build());

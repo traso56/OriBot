@@ -22,25 +22,26 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
     ********************************************/
     [RequireOwner]
     [SlashCommand("createbadge", "adds a role to the store")]
-    public async Task CreateGlobalBadge(string name, string emote, string description)
+    public async Task CreateGlobalBadge(string name, string emote, string description, int experience)
     {
         await DeferAsync();
 
         using var db = DbContextFactory.CreateDbContext();
 
-        var dbBadgeToEdit = db.Badges.FirstOrDefault(b => b.BadgeName == name);
+        var dbBadgeToEdit = db.Badges.FirstOrDefault(b => b.Name == name);
         if (dbBadgeToEdit is not null)
         {
-            dbBadgeToEdit.BadgeEmote = emote;
-            dbBadgeToEdit.BadgeDescription = description;
+            dbBadgeToEdit.Emote = emote;
+            dbBadgeToEdit.Description = description;
         }
         else
         {
             var dbBadge = new Badge
             {
-                BadgeName = name,
-                BadgeDescription = description,
-                BadgeEmote = emote
+                Name = name,
+                Description = description,
+                Emote = emote,
+                Experience = experience
             };
             db.Badges.Add(dbBadge);
         }
@@ -65,7 +66,7 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
 
         for (int i = 0; i < dbBadges.Count; i++)
         {
-            selectMenuBuilder.AddOption(dbBadges[i].BadgeName, i.ToString());
+            selectMenuBuilder.AddOption(dbBadges[i].Name, i.ToString());
         }
         await FollowupAsync("Badges", components: new ComponentBuilder().WithSelectMenu(selectMenuBuilder).Build());
         var question = await GetOriginalResponseAsync();
@@ -83,7 +84,7 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
         dbUser.Badges = [dbBadge];
         db.SaveChanges();
 
-        await question.ModifyAsync(x => x.Content = $"Added {dbBadge.BadgeName} to {target.Username}");
+        await question.ModifyAsync(x => x.Content = $"Added {dbBadge.Name} to {target.Username}");
     }
     /********************************************
         WELCOME BUTTON
