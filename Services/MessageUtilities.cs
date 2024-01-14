@@ -257,7 +257,12 @@ public class MessageUtilities
                 throw new NotImplementedException("Response type is not in enum.");
         }
         var response = await AwaitComponentAsync(question.Id, user.Id, ComponentType.Button);
-        await question.ModifyAsync(m => m.Components = Utilities.DisableAllButtons(buttonBuilder).Build());
+
+        if (responseType == ResponseType.Reply)
+            await question.ModifyAsync(m => m.Components = Utilities.DisableAllButtons(buttonBuilder).Build());
+        else
+            await context.Interaction.ModifyOriginalResponseAsync(m => m.Components = Utilities.DisableAllButtons(buttonBuilder).Build());
+
         return response is null ? null : response.Data.CustomId == "Yes";
     }
     public async Task<bool?> UserConfirmation(ICommandContext context, IUser user, string message)
