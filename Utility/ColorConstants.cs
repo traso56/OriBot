@@ -12,4 +12,5 @@ public static class ColorConstants
     public static Color SpiritCyan => new Color(0x10ffffu);
     public static Color SpiritMagenta => new Color(0xff10ffu);
     public static Color SpiritGray => new Color(0x808080u);
+    public static Color SpiritBlack => new Color(0x000000u);
 }

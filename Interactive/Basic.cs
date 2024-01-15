@@ -73,7 +73,8 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
         buttonBuilder = Utilities.DisableAllButtons(buttonBuilder);
         await infoMessage.ModifyAsync(m => m.Components = buttonBuilder.Build());
     }
-    [SlashCommand("profile", "Gets the information of someone")]
+    [CommandsChannel]
+    [SlashCommand("profile", "Gets the profile of someone")]
     public async Task UserInfo(SocketGuildUser? user = null)
     {
         int CalculateLevel(int experience)
@@ -104,13 +105,16 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
             }
 
         EmbedBuilder embedBuilder = new EmbedBuilder()
-            .WithColor(ColorConstants.SpiritBlue)
+            .WithColor(dbUser?.Color ?? ColorConstants.SpiritBlack)
             .AddUserAvatar(user)
-            .WithTitle("Profile of " + user)
+            .WithTitle(dbUser?.Title ?? $"Profile of {user}")
             .AddField("Created at", TimestampTag.FromDateTimeOffset(user.CreatedAt, TimestampTagStyles.LongDate), true)
             .AddField("Joined at", TimestampTag.FromDateTimeOffset(user.JoinedAt!.Value, TimestampTagStyles.LongDate), true)
             .AddField("Experience", userXp)
             .AddField("Level", CalculateLevel(userXp), true);
+
+        if (dbUser?.Description is not null)
+            embedBuilder.WithDescription(dbUser.Description);
 
         if (user.GuildPermissions.BanMembers)
         {
@@ -126,5 +130,25 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
             }
 
         await FollowupAsync(embed: embedBuilder.Build());
+    }
+    [CommandsChannel]
+    [SlashCommand("editprofile", "Edits your profile")]
+    public async Task EditProfile([MinLength(6)][MaxLength(6)] string hexColor, string? title = null, string? description = null)
+    {
+        if (!Utilities.TryParseHexToColor(hexColor, out Color color))
+        { await RespondAsync("This is not a valid color", ephemeral: true); return; }
+
+        await DeferAsync();
+
+        using var db = DbContextFactory.CreateDbContext();
+
+        var dbUser = db.Users.FindOrCreate(Context.User);
+
+        dbUser.Title = title;
+        dbUser.Description = description;
+        dbUser.Color = color;
+
+        db.SaveChanges();
+        await FollowupAsync("Profile updated successfully!");
     }
 }

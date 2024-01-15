@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Discord;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -14,11 +15,19 @@ public class SpiritContext : DbContext
         { }
     }
 
+    private sealed class ColorConverter : ValueConverter<Color, uint>
+    {
+        public ColorConverter()
+            : base(c => c.RawValue, u => new Color(u))
+        { }
+    }
+
     public DbSet<User> Users { get; set; }
     public DbSet<Badge> Badges { get; set; }
     public DbSet<Punishment> Punishments { get; set; }
     public DbSet<PendingImageRole> PendingImageRoles { get; set; }
     public DbSet<Ticket> Tickets { get; set; }
+    public DbSet<UserBadge> UserBadges { get; set; }
     public DbSet<ApprovedIdea> ApprovedIdeas { get; set; }
 
     public SpiritContext(DbContextOptions<SpiritContext> options)
@@ -50,10 +59,15 @@ public class SpiritContext : DbContext
             .Properties<DateTime>()
             .HaveConversion<DateConverter>();
 
-        //enum converter to use strings
+        // enum converter to use strings
         configurationBuilder
             .Properties<Enum>()
             .HaveConversion<string>();
+
+        // color converter
+        configurationBuilder
+            .Properties<Color>()
+            .HaveConversion<ColorConverter>();
     }
 }
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -61,6 +75,10 @@ public class User
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public required ulong UserId { get; set; }
+
+    public required string? Title { get; set; }
+    public required string? Description { get; set; }
+    public required Color Color { get; set; }
 
     public List<UserBadge> UserBadges { get; set; }
     public List<Badge> Badges { get; set; }

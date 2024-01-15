@@ -49,7 +49,10 @@ public static class ExtensionMethods
     {
         return set.Find(user.Id) ?? set.Add(new User()
         {
-            UserId = user.Id
+            UserId = user.Id,
+            Title = null,
+            Description = null,
+            Color = ColorConstants.SpiritBlack
         }).Entity;
     }
 }
