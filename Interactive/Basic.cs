@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using OriBot.Services;
 using OriBot.Utility;
+using System;
 using System.Text;
 
 namespace OriBot.Interactive;
@@ -77,17 +78,35 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
     [SlashCommand("profile", "Gets the profile of someone")]
     public async Task UserInfo(SocketGuildUser? user = null)
     {
+        const int MAX_LEVEL = 10000;
         int CalculateLevel(int experience)
         {
-            int level = 0;
-            double needed = 40;
-            while (experience > needed)
+            const double PER_LEVEL_MULT = 1.0025;
+            const double LEVEL_1_THRESHOLD = 40;
+
+            double[] LevelToExperience = new double[MAX_LEVEL + 1];
+            int highest = 0;
+            double req = 0;
+            LevelToExperience[0] = 0;
+            for (int lvl = 1; lvl <= MAX_LEVEL; lvl++)
             {
-                level++;
-                experience -= (int)needed;
-                needed *= 1.0025;
+                req += LEVEL_1_THRESHOLD * PER_LEVEL_MULT * lvl;
+                LevelToExperience[lvl] = req;
             }
-            return level;
+            //MAX_EXPERIENCE = req;
+            for (int level = 0; level < LevelToExperience.Length - 0; level++)
+            {
+                if (LevelToExperience[level] <= experience)
+                {
+                    highest = level;
+                }
+                else
+                {
+                    // Specifically found a level higher. We didn't run out.
+                    return highest;
+                }
+            }
+            return MAX_LEVEL;
         }
 
         await DeferAsync();
@@ -95,14 +114,17 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
 
         using var db = DbContextFactory.CreateDbContext();
 
-        var dbUser = db.Users.Include(u => u.UserBadges).ThenInclude(ub => ub.Badge).FirstOrDefault(u => u.UserId == user.Id);
+        var dbUser = db.Users.Include(u => u.UniqueBadges).Include(u => u.UserBadges).ThenInclude(ub => ub.Badge).FirstOrDefault(u => u.UserId == user.Id);
 
         int userXp = 0;
         if (dbUser is not null)
+        {
             foreach (var dbUserBadge in dbUser.UserBadges)
-            {
                 userXp += dbUserBadge.Badge.Experience * dbUserBadge.Count;
-            }
+
+            foreach (var dbUniqueBadge in dbUser.UniqueBadges)
+                userXp += dbUniqueBadge.Experience;
+        }
 
         EmbedBuilder embedBuilder = new EmbedBuilder()
             .WithColor(dbUser?.Color ?? ColorConstants.SpiritBlack)
@@ -110,24 +132,52 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
             .WithTitle(dbUser?.Title ?? $"Profile of {user}")
             .AddField("Created at", TimestampTag.FromDateTimeOffset(user.CreatedAt, TimestampTagStyles.LongDate), true)
             .AddField("Joined at", TimestampTag.FromDateTimeOffset(user.JoinedAt!.Value, TimestampTagStyles.LongDate), true)
-            .AddField("Experience", userXp)
+            .AddField("Experience", userXp, true)
             .AddField("Level", CalculateLevel(userXp), true);
 
         if (dbUser?.Description is not null)
             embedBuilder.WithDescription(dbUser.Description);
 
+        bool inline = false;
         if (user.GuildPermissions.BanMembers)
         {
             IEmote sirenEmote = new Emoji("🚨");
-            embedBuilder.AddField($"{sirenEmote} Moderator", "I'm a moderator of this community");
+            embedBuilder.AddField($"{sirenEmote} Moderator", "I'm a moderator of this community", inline);
+            inline = true;
         }
         if (dbUser is not null)
+        {
             foreach (var userBadge in dbUser.UserBadges)
             {
                 var badge = userBadge.Badge;
                 string romanNumeral = userBadge.Count > 1 ? " " + Utilities.IntToRoman(userBadge.Count) : "";
-                embedBuilder.AddField($"{badge.Emote} {badge.Name}{romanNumeral}", badge.Description, true);
+                embedBuilder.AddField($"{badge.Emote} {badge.Name}{romanNumeral}", $"*{badge.MiniDescription}*\n\n{badge.Description}", inline);
+                inline = true;
             }
+            UniqueBadge[] approvedIdeas = dbUser.UniqueBadges.Where(ub => ub.BadgeType == UniqueBadgeType.ApprovedIdea).ToArray();
+            if (approvedIdeas.Length > 0)
+            {
+                IEmote lightEmote = new Emoji("💡");
+                StringBuilder sb = new StringBuilder("My ideas got approved:");
+
+                foreach (var dbUniqueBadge in approvedIdeas)
+                    sb.Append('\n').Append(dbUniqueBadge.Data);
+
+                embedBuilder.AddField($"{lightEmote} Approved Ideas {Utilities.IntToRoman(approvedIdeas.Length)}", sb.ToString(), inline);
+                inline = true;
+            }
+            UniqueBadge[] emojisCreated = dbUser.UniqueBadges.Where(ub => ub.BadgeType == UniqueBadgeType.EmojiCreator).ToArray();
+            if (emojisCreated.Length > 0)
+            {
+                IEmote naruEmote = Emote.Parse("<:Naru:671886905440206849>");
+                StringBuilder sb = new StringBuilder("I created some emojis:\n");
+
+                foreach (var dbUniqueBadge in approvedIdeas)
+                    sb.Append(dbUniqueBadge.Data);
+
+                embedBuilder.AddField($"{naruEmote} Emojis created {Utilities.IntToRoman(approvedIdeas.Length)}", sb.ToString(), inline);
+            }
+        }
 
         await FollowupAsync(embed: embedBuilder.Build());
     }

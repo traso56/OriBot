@@ -17,12 +17,20 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
     public required MessageUtilities MessageUtilities { get; set; }
     public required VolatileData VolatileData { get; set; }
 
+    [ModCommand]
+    [MessageCommand("add pin")]
+    public async Task AddPin(IMessage message)
+    {
+        IEmote pinEmote = new Emoji("📌");
+        await message.AddReactionAsync(pinEmote);
+        await RespondAsync("added pin emote", ephemeral: true);
+    }
     /********************************************
         BADGES
     ********************************************/
-    [RequireOwner]
+    [ModCommand]
     [SlashCommand("createbadge", "adds a role to the store")]
-    public async Task CreateGlobalBadge(string name, string emote, string description, int experience)
+    public async Task CreateGlobalBadge(string name, string emote, string miniDescription, string description, int experience)
     {
         await DeferAsync();
 
@@ -39,6 +47,7 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
             var dbBadge = new Badge
             {
                 Name = name,
+                MiniDescription = miniDescription,
                 Description = description,
                 Emote = emote,
                 Experience = experience
@@ -48,7 +57,7 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
         db.SaveChanges();
         await FollowupAsync($"badge {name} added");
     }
-    [RequireOwner]
+    [ModCommand]
     [SlashCommand("addbadgetouser", "adds a badge to an user")]
     public async Task AddGlobalBadgeToUser(SocketUser target)
     {

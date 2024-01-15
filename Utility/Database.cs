@@ -28,7 +28,7 @@ public class SpiritContext : DbContext
     public DbSet<PendingImageRole> PendingImageRoles { get; set; }
     public DbSet<Ticket> Tickets { get; set; }
     public DbSet<UserBadge> UserBadges { get; set; }
-    public DbSet<ApprovedIdea> ApprovedIdeas { get; set; }
+    public DbSet<UniqueBadge> UniqueBadges { get; set; }
 
     public SpiritContext(DbContextOptions<SpiritContext> options)
         : base(options)
@@ -82,6 +82,7 @@ public class User
 
     public List<UserBadge> UserBadges { get; set; }
     public List<Badge> Badges { get; set; }
+    public List<UniqueBadge> UniqueBadges { get; set; }
 
     public List<Punishment> Punishments { get; set; }
     public List<Punishment> PunishmentsIssued { get; set; }
@@ -91,6 +92,7 @@ public class Badge
     public int BadgeId { get; set; }
 
     public required string Name { get; set; }
+    public required string MiniDescription { get; set; }
     public required string Description { get; set; }
     public required string Emote { get; set; }
     public required int Experience { get; set; }
@@ -108,11 +110,18 @@ public class UserBadge
 
     public required int Count { get; set; }
 }
-public class ApprovedIdea
+public enum UniqueBadgeType
 {
-    public int ApprovedIdeaId { get; set; }
+    ApprovedIdea,
+    EmojiCreator
+}
+public class UniqueBadge
+{
+    public int UniqueBadgeId { get; set; }
 
-    public required string Idea { get; set; }
+    public required string Data { get; set; }
+    public required UniqueBadgeType BadgeType { get; set; }
+    public required int Experience { get; set; }
 
     public ulong UserId { get; set; }
     public required User User { get; set; }
