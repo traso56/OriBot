@@ -25,6 +25,8 @@ public class BotOptions
     public required ulong MemberRoleId { get; set; }
     public required ulong ImagesRoleId { get; set; }
     public required ulong ModRoleId { get; set; }
+    public required ulong AnyModRoleId { get; set; }
+    public required ulong UnavailableModRoleId { get; set; }
 }
 public class CooldownOptions
 {

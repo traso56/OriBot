@@ -63,6 +63,112 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
         await Globals.LogChannel.SendMessageAsync(embed: builder.Build());
     }
     [ModCommand]
+    [SlashCommand("deletelog", "Deletes an infraction / log on someone")]
+    public async Task DelLog(SocketGuildUser target, string reason, Notify notifyIn, [Summary("punishmentid"), Autocomplete] ulong? punishmentid = null)
+    {
+        await DeferAsync(ephemeral: true);
+
+        using var db = DbContextFactory.CreateDbContext();
+
+        if (punishmentid is not null)
+        {
+            var dbPunishment = db.Punishments.Where(x => x.PunishmentId == punishmentid).FirstOrDefault();
+            if (dbPunishment is null)
+            {
+                await ModifyOriginalResponseAsync(m =>
+                {
+                    m.Content = "That punishment ID does not exist.";
+                    m.Components = new ComponentBuilder().Build();
+                });
+                return;
+            }
+            db.Punishments.Remove(dbPunishment);
+            db.SaveChanges();
+
+            EmbedBuilder embedBuilder = new EmbedBuilder()
+                .WithColor(ColorConstants.SpiritGreen)
+                .AddUserAvatar(target)
+                .WithTitle($"{Context.User.Username} has removed an infraction log from {target.Username}")
+                .AddField("Mention", target.Mention)
+                .AddField("Reason", reason)
+                .AddField("Punishment ID", punishmentid)
+                .AddField("Infraction log removed by", Context.User.Mention)
+                .AddField("Notification setting", notifyIn.ToString())
+                .WithCurrentTimestamp();
+
+            if (notifyIn is Notify.UserDm)
+            {
+                string muteMessage =
+                $"{Context.User.Username} has removed an infraction log from you in {Context.Guild.Name}!\n" +
+                $"**Reason:** {reason}";
+                await MessageUtilities.TrySendDmAsync(target, muteMessage, embedBuilder);
+            }
+
+            await Globals.LogChannel.SendMessageAsync(embed: embedBuilder.Build());
+
+            await ModifyOriginalResponseAsync(m =>
+            {
+                m.Content = "Success";
+                m.Components = new ComponentBuilder().Build();
+            });
+        }
+        else
+        {
+            if (!db.Punishments.Where(x => x.PunishedId == target.Id).Any())
+            {
+                await ModifyOriginalResponseAsync(m =>
+                {
+                    m.Content = "This user has no punishments.";
+                    m.Components = new ComponentBuilder().Build();
+                });
+                return;
+            }
+            bool? response = await MessageUtilities.UserConfirmation(Context, Context.User,
+                $"This will remove all infraction logs from: {target.Username}\n Confirm", MessageUtilities.ResponseType.FollowUp);
+
+            if (response != true)
+            {
+                await ModifyOriginalResponseAsync(m =>
+                {
+                    m.Content = "Command cancelled";
+                    m.Components = new ComponentBuilder().Build();
+                });
+                return;
+            }
+            var dbPunishment = db.Punishments.Where(x => x.PunishedId == target.Id);
+            int deletedLogsAmount = dbPunishment.Count();
+            db.Punishments.RemoveRange(dbPunishment);
+            db.SaveChanges();
+
+            EmbedBuilder embedBuilder = new EmbedBuilder()
+                .WithColor(ColorConstants.SpiritGreen)
+                .AddUserAvatar(target)
+                .WithTitle($"{Context.User.Username} has removed all infraction logs from {target.Username}")
+                .AddField("Mention", target.Mention)
+                .AddField("Reason", reason)
+                .AddField("Infraction logs removed by", Context.User.Mention)
+                .AddField("Amount removed", deletedLogsAmount)
+                .AddField("Notification setting", notifyIn.ToString())
+                .WithCurrentTimestamp();
+
+            await Globals.LogChannel.SendMessageAsync(embed: embedBuilder.Build());
+
+            if (notifyIn is Notify.UserDm)
+            {
+                string muteMessage =
+                $"{Context.User.Username} has removed all infraction logs from you in {Context.Guild.Name}!\n" +
+                $"**Reason:** {reason}";
+                await MessageUtilities.TrySendDmAsync(target, muteMessage, embedBuilder);
+            }
+
+            await ModifyOriginalResponseAsync(m =>
+            {
+                m.Content = "Success";
+                m.Components = new ComponentBuilder().Build();
+            });
+        }
+    }
+    [ModCommand]
     [SlashCommand("loglist", "shows the action logs of a certain user")]
     public async Task LogList(SocketUser target)
     {
@@ -74,7 +180,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
 
         if (dbPunishments.Length == 0)
         {
-            await FollowupAsync("This user doesn't have any actions taken towards them");
+            await FollowupAsync($"{target} doesn't have any actions taken towards them");
             return;
         }
 
@@ -94,8 +200,8 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
                 .WithTitle($"Log list for {target.Username}");
             foreach (var log in logs)
             {
-                SocketUser? issuer = Client.GetUser(log.IssuerId);
-                embedBuilder.AddField($"{log.Type} by {issuer?.Username ?? log.IssuerId.ToString()}",
+                IUser? issuer = await Client.GetUserAsync(log.IssuerId);
+                embedBuilder.AddField($"ID: {log.PunishmentId}, {log.Type} by {issuer?.Username ?? log.IssuerId.ToString()}",
                     $"**Issued:** {Utilities.FullDateTimeStamp((DateTimeOffset)log.Issued)}\n" +
                     $"**Expiry:** {(log.Expiry is not null ? Utilities.FullDateTimeStamp((DateTimeOffset)log.Expiry) : "`Never`")}\n" +
                     $"**Reason:** {log.Reason}");
@@ -504,5 +610,38 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
         await Globals.LogChannel.SendMessageAsync(embed: embedBuilder.Build());
 
         await FollowupAsync("Success");
+    }
+    [AutocompleteCommand("punishmentid", "deletelog")]
+    public async Task Autocomplete()
+    {
+        var autocompleteInteraction = (SocketAutocompleteInteraction)Context.Interaction;
+        IEnumerable<AutocompleteOption> targetoption = autocompleteInteraction.Data.Options.Where(x => x.Name == "target");
+
+        using var db = DbContextFactory.CreateDbContext();
+
+        if (!targetoption.Any())
+        {
+            await autocompleteInteraction.RespondAsync([new AutocompleteResult("To get autocomplete for this command, please fill the target user first.", "none")]);
+            return;
+        }
+        List<AutocompleteResult> possiblekeys = [];
+        foreach (var item in db.Punishments.Where(x => x.PunishedId == ulong.Parse((string)targetoption.First().Value)))
+        {
+            possiblekeys.Add(new AutocompleteResult($"Punishment ID: {item.PunishmentId}, type: {item.Type}", item.PunishmentId));
+        }
+
+        var filtered = possiblekeys.Where(x =>
+        {
+            if (!string.IsNullOrEmpty(autocompleteInteraction.Data.Current.Value as string))
+            {
+                return autocompleteInteraction.Data.Current.Value.ToString()!.StartsWith(x.Value.ToString()!);
+            }
+            else
+            {
+                return true;
+            }
+        });
+        // max - 25 suggestions at a time
+        await autocompleteInteraction.RespondAsync(filtered.Take(25));
     }
 }

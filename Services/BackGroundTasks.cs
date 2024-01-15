@@ -108,7 +108,7 @@ public class BackgroundTasks : DiscordClientService
                     }
                     catch (Discord.Net.HttpException e)
                     {
-                        if (e.DiscordCode != Discord.DiscordErrorCode.UnknownBan)
+                        if (e.DiscordCode != DiscordErrorCode.UnknownBan)
                             throw;
                     }
                     expiredBan.CheckForExpiry = false;
@@ -118,7 +118,7 @@ public class BackgroundTasks : DiscordClientService
                 var imageRolesToGive = db.PendingImageRoles.Where(u => u.ImageRoleDateTime > DateTime.Now).ToArray();
                 foreach (var imageRoleToGive in imageRolesToGive)
                 {
-                    IGuildUser? user = await _globals.MainGuild.GetUserAsync(imageRoleToGive.UserId);
+                    SocketGuildUser? user = _globals.MainGuild.GetUser(imageRoleToGive.UserId);
 
                     if (user is not null)
                         await user.AddRoleAsync(_globals.ImagesRole);

@@ -201,18 +201,15 @@ public partial class MessageHandler : DiscordClientService
                 {
                     await _commandService.ExecuteAsync(context, argPos, _provider);
                 }
-                // respond to a predefined message
-                else if (message.Content.StartsWith('/'))
-                {
-                    await context.Message.ReplyAsync("oh! to use slash commands make sure to click on the option!");
-                }
                 // check for responses and that in the commands channel
                 else if (context.Channel.Id == _globals.CommandsChannel.Id)
                 {
                     await CommandsChannelMessage(context);
-
-
-                    var mods = ((SocketGuild)_globals.MainGuild).Users.Where(u => u.Roles.Contains(_globals.ModRole)).ToArray();
+                }
+                // any mod mention
+                else if (message.Content.StartsWith(_globals.AnyModRole.Mention))
+                {
+                    await AnyModPingHandler(context);
                 }
             }
         }).ContinueWith(async t =>
@@ -254,7 +251,11 @@ public partial class MessageHandler : DiscordClientService
     }
     private async Task CommandsChannelMessage(SocketCommandContext context)
     {
-        if (GreetingRegex().IsMatch(context.Message.Content))
+        if (context.Message.Content.StartsWith('/'))
+        {
+            await context.Message.ReplyAsync("oh! to use slash commands make sure to click on the option!");
+        }
+        else if (GreetingRegex().IsMatch(context.Message.Content))
         {
             await context.Message.ReplyAsync("Hello there! I hope you have a great day " + Emotes.OriHeart);
         }
@@ -262,6 +263,24 @@ public partial class MessageHandler : DiscordClientService
     /********************************************
         HELPER METHODS
     ********************************************/
+    private async Task AnyModPingHandler(SocketCommandContext context)
+    {
+        var mods = _globals.MainGuild.Users.Where(u => u.Roles.Contains(_globals.ModRole)
+            && !u.Roles.Contains(_globals.UnAvailableModRole)
+            && u.Status is UserStatus.Online or UserStatus.Idle or UserStatus.AFK)
+            .ToArray();
+        if (mods.Length == 0)
+        {
+            await context.Channel.SendMessageAsync($"No mods are readily available! " +
+                $"I have to ping the whole role so that whoever is here can get to you. It's no problem! {_globals.ModRole.Mention}");
+        }
+        else
+        {
+            Random rng = new Random();
+            var moderator = mods[rng.Next(mods.Length)];
+            await context.Channel.SendMessageAsync($"{moderator.Mention} will be here to assist you!");
+        }
+    }
     private async Task MessageDeleterHandlerAsync(SocketCommandContext context, string dmMessage)
     {
         var embedBuilder = Utilities.QuoteUserMessage("Message autodeleted", context.Message, ColorConstants.SpiritRed,

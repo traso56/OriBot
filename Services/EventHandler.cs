@@ -5,8 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OriBot.Utility;
-using System.Threading.Channels;
-using static OriBot.Interactive.Moderation;
+using System.ComponentModel;
 
 namespace OriBot.Services;
 
@@ -19,10 +18,11 @@ public class EventHandler : DiscordClientService
     private readonly VolatileData _volatileData;
     private readonly Globals _globals;
     private readonly IOptionsMonitor<PinOptions> _pinOptions;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     public EventHandler(DiscordSocketClient client, ILogger<EventHandler> logger, ExceptionReporter exceptionReporter, IOptionsMonitor<UserJoinOptions> userJoinOptions,
-        MessageUtilities messageUtilities, IDbContextFactory<SpiritContext> dbContextFactory, VolatileData volatileData, Globals globals
-        , IOptionsMonitor<PinOptions> pinOptions)
+        MessageUtilities messageUtilities, IDbContextFactory<SpiritContext> dbContextFactory, VolatileData volatileData, Globals globals,
+        IOptionsMonitor<PinOptions> pinOptions, IHttpClientFactory httpClientFactory)
         : base(client, logger)
     {
         _exceptionReporter = exceptionReporter;
@@ -32,6 +32,7 @@ public class EventHandler : DiscordClientService
         _volatileData = volatileData;
         _globals = globals;
         _pinOptions = pinOptions;
+        _httpClientFactory = httpClientFactory;
 
         Client.AutoModActionExecuted += OnAutoModExecuted;
         Client.AuditLogCreated += OnAuditLogCreated;
@@ -39,17 +40,61 @@ public class EventHandler : DiscordClientService
         Client.UserLeft += OnUserLeft;
         Client.ReactionAdded += OnReactionAdded;
         Client.UserVoiceStateUpdated += OnVoiceStateChanged;
+        Client.GuildMemberUpdated += OnGuildMemberUpdated;
     }
 
-    private Task OnVoiceStateChanged(SocketUser user, SocketVoiceState prevState, SocketVoiceState newState)
+    private enum VoiceActivityEventType
+    {
+        Leave,
+        Join,
+        Move,
+        Other
+    }
+
+    private Task OnVoiceStateChanged(SocketUser user, SocketVoiceState before, SocketVoiceState after)
     {
         Task.Run(async () =>
         {
+            var eventype = VoiceActivityEventType.Other;
+
+            if (after.VoiceChannel is null)
+                eventype = VoiceActivityEventType.Leave;
+            else if (before.VoiceChannel is null)
+                eventype = VoiceActivityEventType.Join;
+            else if (before.VoiceChannel.Id != after.VoiceChannel.Id)
+                eventype = VoiceActivityEventType.Move;
+
+            if (eventype == VoiceActivityEventType.Other)
+                return;
+
             EmbedBuilder embedBuilder = new EmbedBuilder()
                 .WithColor(ColorConstants.SpiritBlue)
-                .WithTitle("User changed voice channel")
-                .WithDescription($"From `{prevState.VoiceChannel?.Name ?? "Disconnected"}` to `{newState.VoiceChannel?.Name ?? "Disconnected"}`")
+                .AddUserAvatar(user)
+                .WithTitle(user.ToString())
                 .WithCurrentTimestamp();
+
+            switch (eventype)
+            {
+                case VoiceActivityEventType.Leave:
+                    embedBuilder = embedBuilder.WithTitle("This user left a voice channel")
+                    .AddField("Voice channel", before.VoiceChannel!.Mention);
+
+                    break;
+                case VoiceActivityEventType.Join:
+                    embedBuilder = embedBuilder.WithTitle("This user joined a voice channel")
+                    .AddField("Voice channel", after.VoiceChannel!.Mention);
+
+                    break;
+                case VoiceActivityEventType.Move:
+                    embedBuilder = embedBuilder.WithTitle("This user moved between voice channels")
+                    .AddField("Previous voice channel", before.VoiceChannel!.Mention)
+                    .AddField("New voice channel", after.VoiceChannel!.Mention);
+
+                    break;
+                default:
+                    throw new InvalidEnumArgumentException("Voice enum stae is invalid.");
+            }
+
 
             await _globals.VoiceActivityChannel.SendMessageAsync(embed: embedBuilder.Build());
 
@@ -76,7 +121,11 @@ public class EventHandler : DiscordClientService
                 var issuerDbUser = db.Users.FindOrCreate(Client.CurrentUser);
                 var punishedDbUser = db.Users.FindOrCreate(target);
 
-                string muteReason = $"**Auto muted for sending:** {data.Content}\n**Matched word:** {data.MatchedKeyword}";
+                string matched = data.MatchedKeyword;
+                if (matched == "(?:(?:https?://)?(?:www)?discord(?:app)?\\.(?:(?:com|gg)/invite/[a-z0-9-_]+)|(?:https?://)?(?:www)?discord\\.gg/[a-z0-9-_]+)")
+                    matched = "invite link";
+
+                string muteReason = $"**Auto muted for sending:** {data.Content}\n**Matched word:** {matched}";
 
                 var dbPunishment = new Punishment()
                 {
@@ -270,6 +319,37 @@ public class EventHandler : DiscordClientService
         {
             var exceptionContext = new ExceptionContext();
             await _exceptionReporter.NotifyExceptionAsync(t.Exception!.InnerException!, exceptionContext, "Exception while executing reaction added event", false);
+        }, TaskContinuationOptions.OnlyOnFaulted);
+        return Task.CompletedTask;
+    }
+    private Task OnGuildMemberUpdated(Cacheable<SocketGuildUser, ulong> before, SocketGuildUser after)
+    {
+        Task.Run(async () =>
+        {
+            string cached = before.Value.GetDisplayAvatarUrl(ImageFormat.Auto) ?? before.Value.GetDefaultAvatarUrl();
+
+            var embedBuilder = new EmbedBuilder()
+                .WithColor(ColorConstants.SpiritCyan)
+                .WithAuthor(after)
+                .WithTitle($"{after} changed server profile info.")
+                .AddField("Mention", after.Mention)
+                .AddField("Nickname", $"Previous: `{before.Value.DisplayName}`\nNew: `{after.DisplayName}`")
+                .WithFooter($"Author ID: {after.Id}")
+                .WithCurrentTimestamp();
+
+            if (cached is not null && cached != (after.GetDisplayAvatarUrl() ?? after.GetDefaultAvatarUrl()))
+            {
+                Uri uri = new Uri(cached);
+                HttpClient httpClient = _httpClientFactory.CreateClient();
+                await _globals.LogChannel.SendFileAsync(await httpClient.GetStreamAsync(cached), Path.GetFileName(uri.LocalPath), "Previous avatar", embed: embedBuilder.Build());
+                return;
+            }
+
+            await _globals.LogChannel.SendMessageAsync(embed: embedBuilder.Build());
+        }).ContinueWith(async t =>
+        {
+            var exceptionContext = new ExceptionContext();
+            await _exceptionReporter.NotifyExceptionAsync(t.Exception!.InnerException!, exceptionContext, "Exception while executing member updated event", false);
         }, TaskContinuationOptions.OnlyOnFaulted);
         return Task.CompletedTask;
     }
