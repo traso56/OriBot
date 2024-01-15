@@ -286,7 +286,7 @@ public class MessageUtilities
         catch (TaskCanceledException)
         { /* task cancelled */ }
     }
-    public async Task<IUserMessage> SendMessageWithFiles(IMessageChannel channel, EmbedBuilder embedBuilder, IUserMessage message)
+    public async Task<IUserMessage> SendMessageWithFiles(IMessageChannel channel, EmbedBuilder embedBuilder, IUserMessage message, ComponentBuilder? components = null)
     {
         if (message.Attachments.Count == 0)
         {
@@ -307,7 +307,7 @@ public class MessageUtilities
                     {
                         files.Add(new FileAttachment(await httpClient.GetStreamAsync(attachment.Url), attachment.Filename, attachment.Description));
                     }
-                    return await channel.SendFilesAsync(files, embed: embedBuilder.Build());
+                    return await channel.SendFilesAsync(files, embed: embedBuilder.Build(), components: components?.Build());
                 }
                 finally
                 {
@@ -318,7 +318,7 @@ public class MessageUtilities
             else
             {
                 string attachmentsString = "Files too large to upload. Their links are:\n" + Utilities.MessageAttachmentsToUrls(message);
-                return await channel.SendMessageAsync(attachmentsString, embed: embedBuilder.Build());
+                return await channel.SendMessageAsync(attachmentsString, embed: embedBuilder.Build(), components: components?.Build());
             }
         }
     }

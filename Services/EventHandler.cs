@@ -307,7 +307,10 @@ public class EventHandler : DiscordClientService
                         EmbedBuilder embedBuilder = Utilities.QuoteUserMessage($"Post by {reactedMessage.Author.Username}", reactedMessage, ColorConstants.SpiritCyan,
                             includeOriginChannel: false, includeDirectUserLink: false, includeMessageReference: false);
 
-                        await _messageUtilities.SendMessageWithFiles(_globals.StarBoardChannel, embedBuilder, reactedMessage);
+                        ComponentBuilder buttonBuilder = new ComponentBuilder()
+                            .WithButton("Jump", style: ButtonStyle.Link, url: message.Value.GetJumpUrl());
+
+                        await _messageUtilities.SendMessageWithFiles(_globals.StarBoardChannel, embedBuilder, reactedMessage, buttonBuilder);
 
                         using var db = _dbContextFactory.CreateDbContext();
                         Utilities.AddBadgeToUser(db, reactedMessage.Author, DbBadges.Pincushion);
@@ -341,11 +344,11 @@ public class EventHandler : DiscordClientService
             {
                 Uri uri = new Uri(cached);
                 HttpClient httpClient = _httpClientFactory.CreateClient();
-                await _globals.LogChannel.SendFileAsync(await httpClient.GetStreamAsync(cached), Path.GetFileName(uri.LocalPath), "Previous avatar", embed: embedBuilder.Build());
+                await _globals.MembersChannel.SendFileAsync(await httpClient.GetStreamAsync(cached), Path.GetFileName(uri.LocalPath), "Previous avatar", embed: embedBuilder.Build());
                 return;
             }
 
-            await _globals.LogChannel.SendMessageAsync(embed: embedBuilder.Build());
+            await _globals.MembersChannel.SendMessageAsync(embed: embedBuilder.Build());
         }).ContinueWith(async t =>
         {
             var exceptionContext = new ExceptionContext();
