@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Hosting;
 using OriBot.Services;
 using OriBot.Utility;
@@ -18,14 +17,14 @@ public class Traso : ModuleBase
     public required MessageUtilities MessageUtilities { get; set; }
     public required IDbContextFactory<SpiritContext> DbContextFactory { get; set; }
 
-    [RequireOwner]
+    [ModCommand]
     [Command("stop")]
     public async Task Stop()
     {
         await ReplyAsync("Stopping systems");
         ApplicationLifetime.StopApplication();
     }
-    [RequireOwner]
+    [ModCommand]
     [Command("register")]
     public async Task Register()
     {
@@ -54,7 +53,7 @@ public class Traso : ModuleBase
     /********************************************
         SERVER STUFF
     ********************************************/
-    [RequireOwner]
+    [ModCommand]
     [Command("welcomemessage")]
     [Summary("creates the welcome message of the server")]
     public async Task WelcomeMessage([Remainder] string message)
