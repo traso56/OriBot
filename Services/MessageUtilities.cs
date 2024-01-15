@@ -290,7 +290,7 @@ public class MessageUtilities
     {
         if (message.Attachments.Count == 0)
         {
-            return await channel.SendMessageAsync(embed: embedBuilder.Build());
+            return await channel.SendMessageAsync(embed: embedBuilder.Build(), components: components?.Build());
         }
         else
         {

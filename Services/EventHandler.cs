@@ -292,7 +292,8 @@ public class EventHandler : DiscordClientService
         {
             if (channel.Id == _globals.ArtChannel.Id) //art channel stuff
             {
-                IUserMessage reactedMessage = message.Value ?? (IUserMessage)await channel.Value.GetMessageAsync(message.Id);
+                SocketTextChannel artChannel = _globals.MainGuild.GetTextChannel(_globals.ArtChannel.Id);
+                IUserMessage reactedMessage = message.Value ?? (IUserMessage)await artChannel.GetMessageAsync(message.Id);
                 if (reaction.UserId != Client.CurrentUser.Id) // message is not pinned and bot already reacted
                 {
                     if (reaction.UserId == reactedMessage.Author.Id && reaction.Emote.Equals(Emotes.CrossMark))
@@ -300,7 +301,8 @@ public class EventHandler : DiscordClientService
                         await reactedMessage.RemoveAllReactionsForEmoteAsync(Emotes.Pin); //if image author reacts with "X" then remove all pins
                     }
                     else if (reactedMessage.Reactions.TryGetValue(Emotes.Pin, out ReactionMetadata metaData)
-                        && metaData.IsMe && metaData.ReactionCount >= _pinOptions.CurrentValue.PinAmount) //is it a pin?
+                        && metaData.IsMe && metaData.ReactionCount >= _pinOptions.CurrentValue.PinAmount
+                        && DateTimeOffset.UtcNow - reactedMessage.CreatedAt < new TimeSpan(45, 0, 0, 0)) //is it a pin and was it created less than 45 days ago?
                     {
                         await reactedMessage.RemoveReactionAsync(Emotes.Pin, Client.CurrentUser);
 
@@ -308,7 +310,7 @@ public class EventHandler : DiscordClientService
                             includeOriginChannel: false, includeDirectUserLink: false, includeMessageReference: false);
 
                         ComponentBuilder buttonBuilder = new ComponentBuilder()
-                            .WithButton("Jump", style: ButtonStyle.Link, url: message.Value.GetJumpUrl());
+                            .WithButton("Jump", style: ButtonStyle.Link, url: reactedMessage.GetJumpUrl());
 
                         await _messageUtilities.SendMessageWithFiles(_globals.StarBoardChannel, embedBuilder, reactedMessage, buttonBuilder);
 
