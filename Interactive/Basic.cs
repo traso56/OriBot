@@ -108,6 +108,7 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
             }
             return MAX_LEVEL;
         }
+        string LevelToRoman(int level) => level > 1 ? " " + Utilities.IntToRoman(level) : "";
 
         await DeferAsync();
         user = (SocketGuildUser)(user ?? Context.User);
@@ -141,8 +142,8 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
         bool inline = false;
         if (user.GuildPermissions.BanMembers)
         {
-            IEmote sirenEmote = new Emoji("🚨");
-            embedBuilder.AddField($"{sirenEmote} Moderator", "I'm a moderator of this community", inline);
+            IEmote policeCarEmote = new Emoji("🚓");
+            embedBuilder.AddField($"{policeCarEmote} StaffMember", "Anti-Fun Enforcement Badge\n\n*I'm a staff member on this server.*", inline);
             inline = true;
         }
         if (dbUser is not null)
@@ -150,20 +151,19 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
             foreach (var userBadge in dbUser.UserBadges)
             {
                 var badge = userBadge.Badge;
-                string romanNumeral = userBadge.Count > 1 ? " " + Utilities.IntToRoman(userBadge.Count) : "";
-                embedBuilder.AddField($"{badge.Emote} {badge.Name}{romanNumeral}", $"*{badge.MiniDescription}*\n\n{badge.Description}", inline);
+                embedBuilder.AddField($"{badge.Emote} {badge.Name}{LevelToRoman(userBadge.Count)}", $"*{badge.MiniDescription}*\n\n{badge.Description}", inline);
                 inline = true;
             }
             UniqueBadge[] approvedIdeas = dbUser.UniqueBadges.Where(ub => ub.BadgeType == UniqueBadgeType.ApprovedIdea).ToArray();
             if (approvedIdeas.Length > 0)
             {
                 IEmote lightEmote = new Emoji("💡");
-                StringBuilder sb = new StringBuilder("My ideas got approved:");
+                StringBuilder sb = new StringBuilder("Ideas approved:");
 
                 foreach (var dbUniqueBadge in approvedIdeas)
                     sb.Append('\n').Append(dbUniqueBadge.Data);
 
-                embedBuilder.AddField($"{lightEmote} Approved Ideas {Utilities.IntToRoman(approvedIdeas.Length)}", sb.ToString(), inline);
+                embedBuilder.AddField($"{lightEmote} Creative Thinker {LevelToRoman(approvedIdeas.Length)}", sb.ToString(), inline);
                 inline = true;
             }
             UniqueBadge[] emojisCreated = dbUser.UniqueBadges.Where(ub => ub.BadgeType == UniqueBadgeType.EmojiCreator).ToArray();
@@ -175,7 +175,7 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
                 foreach (var dbUniqueBadge in emojisCreated)
                     sb.Append(dbUniqueBadge.Data);
 
-                embedBuilder.AddField($"{naruEmote} Emojis created {Utilities.IntToRoman(emojisCreated.Length)}", sb.ToString(), inline);
+                embedBuilder.AddField($"{naruEmote} Emoji Creator {LevelToRoman(emojisCreated.Length)}", sb.ToString(), inline);
             }
         }
 
