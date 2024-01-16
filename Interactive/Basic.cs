@@ -198,4 +198,11 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
         db.SaveChanges();
         await FollowupAsync("Profile updated successfully!");
     }
+    [CommandsChannel]
+    [SlashCommand("hug", "Hugs Ori.")]
+    public async Task Hug()
+    {
+        await RespondAsync(Emotes.OriHugKu.ToString());
+    }
+
 }
