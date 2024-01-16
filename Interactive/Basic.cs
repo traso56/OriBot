@@ -142,8 +142,7 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
         bool inline = false;
         if (user.GuildPermissions.BanMembers)
         {
-            IEmote policeCarEmote = new Emoji("🚓");
-            embedBuilder.AddField($"{policeCarEmote} StaffMember", "Anti-Fun Enforcement Badge\n\n*I'm a staff member on this server.*", inline);
+            embedBuilder.AddField($"{Emotes.PoliceCarEmote} StaffMember", "Anti-Fun Enforcement Badge\n\n*I'm a staff member on this server.*", inline);
             inline = true;
         }
         if (dbUser is not null)
@@ -157,25 +156,23 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
             UniqueBadge[] approvedIdeas = dbUser.UniqueBadges.Where(ub => ub.BadgeType == UniqueBadgeType.ApprovedIdea).ToArray();
             if (approvedIdeas.Length > 0)
             {
-                IEmote lightEmote = new Emoji("💡");
                 StringBuilder sb = new StringBuilder("Ideas approved:");
 
                 foreach (var dbUniqueBadge in approvedIdeas)
                     sb.Append('\n').Append(dbUniqueBadge.Data);
 
-                embedBuilder.AddField($"{lightEmote} Creative Thinker {LevelToRoman(approvedIdeas.Length)}", sb.ToString(), inline);
+                embedBuilder.AddField($"{Emotes.LightBulbEmote} Creative Thinker {LevelToRoman(approvedIdeas.Length)}", sb.ToString(), inline);
                 inline = true;
             }
             UniqueBadge[] emojisCreated = dbUser.UniqueBadges.Where(ub => ub.BadgeType == UniqueBadgeType.EmojiCreator).ToArray();
             if (emojisCreated.Length > 0)
             {
-                IEmote naruEmote = Emote.Parse("<:Naru:671886905440206849>");
                 StringBuilder sb = new StringBuilder("I created some emojis:\n");
 
                 foreach (var dbUniqueBadge in emojisCreated)
                     sb.Append(dbUniqueBadge.Data);
 
-                embedBuilder.AddField($"{naruEmote} Emoji Creator {LevelToRoman(emojisCreated.Length)}", sb.ToString(), inline);
+                embedBuilder.AddField($"{Emotes.NaruEmote} Emoji Creator {LevelToRoman(emojisCreated.Length)}", sb.ToString(), inline);
             }
         }
 

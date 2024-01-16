@@ -225,6 +225,7 @@ public partial class MessageHandler : DiscordClientService
                     await AnyModPingHandler(context);
                 }
             }
+
         }).ContinueWith(async t =>
         {
             var exceptionContext = new ExceptionContext(arg);
