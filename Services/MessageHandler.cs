@@ -144,35 +144,19 @@ public partial class MessageHandler : DiscordClientService
                     await ArtChannelCheckAsync(context);
                 }
             }
-            //if (oldMessage.Value is IUserMessage oldUserMessage)
-            //{
-            //    // TODO: do this lmao
+            if (oldMessage.Value is IUserMessage oldUserMessage)
+            {
+                EmbedBuilder embedBuilder = new EmbedBuilder()
+                    .WithColor(ColorConstants.SpiritRed)
+                    .WithTitle("Message edited")
+                    .AddUserAvatar(newMessage.Author)
+                    .AddLongField("Old message", oldUserMessage.Content, "Message did not have text")
+                    .AddLongField("New message", newMessage.Content, "Message does not have text")
+                    .AddField("Channel", $"<#{channel.Id}>")
+                    .WithCurrentTimestamp();
 
-            //    EmbedBuilder embedBuilder = Utilities.QuoteUserMessage("Message updated", message, ColorConstants.SpiritRed,
-            //        includeOriginChannel: true, includeDirectUserLink: true, includeMessageReference: true);
-
-            //    await _messageUtilities.SendMessageWithFiles(_globals.NotesChannel, embedBuilder, message);
-
-            //    if (channel.Id == _botOptions.ArtChannelId)
-            //    {
-            //        using var db = _dbContextFactory.CreateDbContext();
-            //        Utilities.RemoveBadgeFromUser(db, message.Author, DbBadges.Creative);
-            //        db.SaveChanges();
-            //    }
-            //}
-            //else if (oldMessage.Value is not ISystemMessage)
-            //{
-            //    DateTimeOffset deleteDate = SnowflakeUtils.FromSnowflake(oldMessage.Id);
-
-            //    EmbedBuilder embedBuilder = new EmbedBuilder()
-            //        .WithColor(ColorConstants.SpiritRed)
-            //        .WithTitle("Message deleted")
-            //        .AddField("Message", "Message was not in cache")
-            //        .AddField("Message was created on", Utilities.FullDateTimeStamp(deleteDate), true)
-            //        .AddField("Channel", $"<#{channel.Id}>", true);
-
-            //    await _globals.NotesChannel.SendMessageAsync(embed: embedBuilder.Build());
-            //}
+                await _globals.NotesChannel.SendMessageAsync(embed: embedBuilder.Build());
+            }
 
         }).ContinueWith(async t =>
         {
