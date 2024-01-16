@@ -172,10 +172,10 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
                 IEmote naruEmote = Emote.Parse("<:Naru:671886905440206849>");
                 StringBuilder sb = new StringBuilder("I created some emojis:\n");
 
-                foreach (var dbUniqueBadge in approvedIdeas)
+                foreach (var dbUniqueBadge in emojisCreated)
                     sb.Append(dbUniqueBadge.Data);
 
-                embedBuilder.AddField($"{naruEmote} Emojis created {Utilities.IntToRoman(approvedIdeas.Length)}", sb.ToString(), inline);
+                embedBuilder.AddField($"{naruEmote} Emojis created {Utilities.IntToRoman(emojisCreated.Length)}", sb.ToString(), inline);
             }
         }
 
