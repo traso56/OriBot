@@ -199,10 +199,6 @@ public partial class MessageHandler : DiscordClientService
                     }
                 }
 
-                await message.Channel.SendMessageAsync("Emojis with list: " + Utilities.StringWithEmotesToSeparated(message.Content).Count);
-
-                await message.Channel.SendMessageAsync("Emojis with regex: " + Utilities.EmojiCounter(message.Content));
-
                 int argPos = 0;
                 // art channel check
                 if (context.Channel.Id == _botOptions.ArtChannelId)

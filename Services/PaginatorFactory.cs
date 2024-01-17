@@ -1,4 +1,5 @@
 ﻿using Discord;
+using OriBot.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,7 +59,14 @@ public class PaginatorFactory
                 var selection = await _messageUtilities.AwaitComponentAsync(message.Id, user?.Id, MessageUtilities.ComponentType.Button, timeoutInSeconds);
 
                 if (selection is null)
+                {
+                    ComponentBuilder disabledButtons = new ComponentBuilder()
+                        .WithButton("Previous", customId: "l", disabled: true)
+                        .WithButton("Next", customId: "r", disabled: true);
+
+                    await message.ModifyAsync(m => m.Components = disabledButtons.Build());
                     return;
+                }
 
                 if (selection.Data.CustomId == "l")
                     index--;
