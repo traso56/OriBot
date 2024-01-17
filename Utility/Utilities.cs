@@ -1,10 +1,12 @@
 ﻿using Discord.WebSocket;
 using Discord;
 using System.Text;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace OriBot.Utility;
 
-public static class Utilities
+public static partial class Utilities
 {
     /// <summary>
     /// creates a filepath to retrieve files from the local program directory.
@@ -210,4 +212,93 @@ public static class Utilities
 
         return sb.ToString();
     }
+
+    public static List<string> StringWithEmotesToSeparated(string text)
+    {
+        var info = new StringInfo(text);
+
+        List<string> parsed = [];
+
+        var enumerator = StringInfo.GetTextElementEnumerator(text);
+        while (enumerator.MoveNext())
+        {
+
+            var glyph = enumerator.GetTextElement();
+            if (Discord.Emoji.TryParse(glyph, out var emote))
+            {
+                parsed.Add(emote.ToString());
+            }
+            else
+            {
+                parsed.Add(glyph);
+            }
+        }
+        return parsed;
+    }
+
+    enum TypeOfText
+    {
+        Emote,
+        String
+    }
+
+    class EmoteOrString
+    {
+        public TypeOfText typeOfText = TypeOfText.String;
+        public StringBuilder content = new StringBuilder();
+    }
+
+    public static List<string> RecognizeDiscordEmotes(List<string> strings)
+    {
+        var areWeEscaping = false;
+        var parsingEmote = false;
+        var result = new List<EmoteOrString>();
+        var emoteOrString = new EmoteOrString();
+        for (int i = 0; i < strings.Count; i++)
+        {
+            var item = strings[i];
+            if (item == @"\")
+            {
+                areWeEscaping = !areWeEscaping;
+            }
+            else
+            {
+                areWeEscaping = false;
+            }
+
+            if (Discord.Emoji.TryParse(item, out var emote))
+            {
+                emoteOrString.content.Append(emote.Name);
+                result.Add(emoteOrString);
+                emoteOrString = new EmoteOrString();
+                continue;
+            }
+
+            // <...
+            if (item == "<" && !areWeEscaping)
+            {
+                if (i == strings.Count - 1 || strings[i + 1] != ":")
+                {
+                    // <(anything other than :)
+                    emoteOrString.content.Append(item);
+                    continue;
+                }
+                // <:....
+                parsingEmote = true;
+                emoteOrString.typeOfText = TypeOfText.Emote;
+                emoteOrString.content.Append(item);
+                continue;
+            }
+
+            emoteOrString.content.Append(item);
+        }
+        return [];
+    }
+
+    public static int EmojiCounter(string text)
+    {
+        return Emoji().Matches(text).Count;
+    }
+
+    private static partial Regex Emoji();
 }
