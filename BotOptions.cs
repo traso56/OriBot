@@ -49,3 +49,28 @@ public class PinOptions
 {
     public required int PinAmount { get; set; }
 }
+public class PassiveResponsesOptions
+{
+    public required bool Enabled { get; set; }
+    public required bool AllowInAnyChannel { get; set; }
+
+    /// <summary>
+    /// The time that a user must wait before they can get another response from the bot.
+    /// </summary>
+    public required int CooldownTimeMS { get; set; }
+
+    /// <summary>
+    /// Whether or not the cooldown system is enabled.
+    /// </summary>
+    public required bool IsCooldownEnabled { get; set; }
+
+    /// <summary>
+    /// The chance of Ku chiming in.
+    /// </summary>
+    public required int KuChance { get; set; }
+
+    /// <summary>
+    /// Force the system to believe it's march 11.
+    /// </summary>
+    public required bool ForceBirthday { get; set; }
+}

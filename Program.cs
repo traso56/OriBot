@@ -25,6 +25,7 @@ internal static class Program
             .AddJsonFile("ComponentNegativeResponsesOptions.json", optional: false, reloadOnChange: true)
             .AddJsonFile("UserJoinOptions.json", optional: false, reloadOnChange: true)
             .AddJsonFile("PinOptions.json", optional: false, reloadOnChange: true)
+            .AddJsonFile("PassiveResponsesOptions.json", optional: false, reloadOnChange: true)
             .Build();
 
         Log.Logger = new LoggerConfiguration()
@@ -80,6 +81,7 @@ internal static class Program
                         .Configure<ComponentNegativeResponsesOptions>(configuration)
                         .Configure<UserJoinOptions>(configuration)
                         .Configure<PinOptions>(configuration)
+                        .Configure<PassiveResponsesOptions>(configuration)
                         .AddDbContextFactory<SpiritContext>(options => options.UseSqlite($"Data Source={Path.Combine(AppContext.BaseDirectory, "Files", "database.db")}").EnableThreadSafetyChecks(true))
                         .AddHttpClient()
                         // managers
@@ -93,7 +95,8 @@ internal static class Program
                         .AddSingleton<ExceptionReporter>()
                         .AddSingleton<VolatileData>()
                         .AddSingleton<MessageUtilities>()
-                        .AddSingleton<PaginatorFactory>();
+                        .AddSingleton<PaginatorFactory>()
+                        .AddSingleton<PassiveResponses>();
                 })
                 .UseSerilog()
                 .UseConsoleLifetime()

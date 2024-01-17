@@ -28,11 +28,12 @@ public partial class MessageHandler : DiscordClientService
     private readonly Globals _globals;
     private readonly MessageUtilities _messageUtilities;
     private readonly IDbContextFactory<SpiritContext> _dbContextFactory;
+    private readonly PassiveResponses _passiveResponses;
     private readonly BotOptions _botOptions;
 
     public MessageHandler(DiscordSocketClient client, ILogger<DiscordClientService> logger, IServiceProvider provider, CommandService commandService,
          ExceptionReporter exceptionReporter, VolatileData volatileData, Globals globals, MessageUtilities messageUtilities,
-         IDbContextFactory<SpiritContext> dbContextFactory, IOptions<BotOptions> options)
+         IDbContextFactory<SpiritContext> dbContextFactory, IOptions<BotOptions> options, PassiveResponses passiveResponses)
         : base(client, logger)
     {
         _provider = provider;
@@ -42,6 +43,7 @@ public partial class MessageHandler : DiscordClientService
         _globals = globals;
         _messageUtilities = messageUtilities;
         _dbContextFactory = dbContextFactory;
+        _passiveResponses = passiveResponses;
         _botOptions = options.Value;
 
         commandService.CommandExecuted += OnCommandExecuted;
@@ -269,9 +271,9 @@ public partial class MessageHandler : DiscordClientService
         {
             await context.Message.ReplyAsync("oh! to use slash commands make sure to click on the option!");
         }
-        else if (GreetingRegex().IsMatch(context.Message.Content))
+        else
         {
-            await context.Message.ReplyAsync("Hello there! I hope you have a great day " + Emotes.OriHeart);
+            await _passiveResponses.ExecuteHandlerAsync(context);
         }
     }
     /********************************************
