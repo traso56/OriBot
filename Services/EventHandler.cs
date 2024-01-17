@@ -241,7 +241,7 @@ public class EventHandler : DiscordClientService
             bool userMuted = user.TimedOutUntil > DateTimeOffset.UtcNow;
 
             EmbedBuilder joinEmbedBuilder = new EmbedBuilder()
-                .WithColor(userMuted ? ColorConstants.SpiritYellow : ColorConstants.SpiritCyan)
+                .WithColor(userMuted ? ColorConstants.SpiritYellow : ColorConstants.SpiritGreen)
                 .AddUserAvatar(user)
                 .AddField($"{user} has joined the server", user.Mention)
                 .AddField("Account creation date", Utilities.FullDateTimeStamp(user.CreatedAt))
@@ -271,7 +271,7 @@ public class EventHandler : DiscordClientService
             bool wasBanned = _volatileData.IgnoredDeletedMessagesIds.TryRemove(user.Id);
 
             EmbedBuilder embedBuilder = new EmbedBuilder()
-                .WithColor(wasBanned ? ColorConstants.SpiritRed : ColorConstants.SpiritBlue)
+                .WithColor(ColorConstants.SpiritRed)
                 .AddUserAvatar(user)
                 .AddField(wasBanned ? $"{user} has been banned" : $"{user} has left the server", user.Mention)
                 .WithDirectUserLink(user)

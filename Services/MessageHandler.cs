@@ -149,12 +149,14 @@ public partial class MessageHandler : DiscordClientService
             if (oldMessage.Value is IUserMessage oldUserMessage)
             {
                 EmbedBuilder embedBuilder = new EmbedBuilder()
-                    .WithColor(ColorConstants.SpiritRed)
+                    .WithColor(ColorConstants.SpiritYellow)
                     .WithTitle("Message edited")
                     .AddUserAvatar(newMessage.Author)
+                    .AddField("Mention", newMessage.Author.Mention, true)
+                    .AddField("Message was created on", Utilities.FullDateTimeStamp(newMessage.CreatedAt), true)
+                    .AddField("Channel", $"<#{channel.Id}>", true)
                     .AddLongField("Old message", oldUserMessage.Content, "Message did not have text")
                     .AddLongField("New message", newMessage.Content, "Message does not have text")
-                    .AddField("Channel", $"<#{channel.Id}>")
                     .WithCurrentTimestamp();
 
                 await _globals.NotesChannel.SendMessageAsync(embed: embedBuilder.Build());
