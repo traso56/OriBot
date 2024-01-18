@@ -212,4 +212,14 @@ public static partial class Utilities
 
         return sb.ToString();
     }
+    /// <summary>
+    /// Creates a <see cref="ComponentBuilder"/> with a button with a link to the specified message.
+    /// </summary>
+    /// <param name="message">The message to get a link from.</param>
+    /// <returns>The <see cref="ComponentBuilder"/> with the link button</returns>
+    public static ComponentBuilder CreateMessageJumpButton(IMessage message)
+    {
+        return new ComponentBuilder()
+            .WithButton("Jump", style: ButtonStyle.Link, url: message.GetJumpUrl());
+    }
 }

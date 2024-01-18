@@ -306,13 +306,11 @@ public class EventHandler : DiscordClientService
                     {
                         await reactedMessage.RemoveReactionAsync(Emotes.Pin, Client.CurrentUser);
 
-                        EmbedBuilder embedBuilder = Utilities.QuoteUserMessage($"Post by {reactedMessage.Author.Username}", reactedMessage, ColorConstants.SpiritCyan,
-                            includeOriginChannel: false, includeDirectUserLink: false, includeMessageReference: false);
+                        EmbedBuilder embedBuilder = Utilities.QuoteUserMessage($"Post by {reactedMessage.Author.Username}", reactedMessage,
+                            ColorConstants.SpiritCyan, includeOriginChannel: false, includeDirectUserLink: false, includeMessageReference: false);
 
-                        ComponentBuilder buttonBuilder = new ComponentBuilder()
-                            .WithButton("Jump", style: ButtonStyle.Link, url: reactedMessage.GetJumpUrl());
-
-                        await _messageUtilities.SendMessageWithFiles(_globals.StarBoardChannel, embedBuilder, reactedMessage, buttonBuilder);
+                        await _messageUtilities.SendMessageWithFiles(_globals.StarBoardChannel, embedBuilder, reactedMessage,
+                            Utilities.CreateMessageJumpButton(reactedMessage));
 
                         using var db = _dbContextFactory.CreateDbContext();
                         Utilities.AddBadgeToUser(db, reactedMessage.Author, DbBadges.Pincushion);

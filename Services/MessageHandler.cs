@@ -96,7 +96,8 @@ public partial class MessageHandler : DiscordClientService
                 EmbedBuilder embedBuilder = Utilities.QuoteUserMessage("Message deleted", message, ColorConstants.SpiritRed,
                     includeOriginChannel: true, includeDirectUserLink: true, includeMessageReference: true);
 
-                await _messageUtilities.SendMessageWithFiles(_globals.NotesChannel, embedBuilder, message);
+                await _messageUtilities.SendMessageWithFiles(_globals.NotesChannel, embedBuilder, message,
+                    Utilities.CreateMessageJumpButton(message));
 
                 if (channel.Id == _botOptions.ArtChannelId)
                 {
@@ -152,14 +153,15 @@ public partial class MessageHandler : DiscordClientService
                     .WithColor(ColorConstants.SpiritYellow)
                     .WithTitle("Message edited")
                     .AddUserAvatar(newMessage.Author)
+                    .AddLongField("Old message", oldUserMessage.Content, "Message did not have text")
+                    .AddLongField("New message", newMessage.Content, "Message does not have text")
                     .AddField("Mention", newMessage.Author.Mention, true)
                     .AddField("Message was created on", Utilities.FullDateTimeStamp(newMessage.CreatedAt), true)
                     .AddField("Channel", $"<#{channel.Id}>", true)
-                    .AddLongField("Old message", oldUserMessage.Content, "Message did not have text")
-                    .AddLongField("New message", newMessage.Content, "Message does not have text")
+                    .WithDirectUserLink(message.Author)
                     .WithCurrentTimestamp();
 
-                await _globals.NotesChannel.SendMessageAsync(embed: embedBuilder.Build());
+                await _globals.NotesChannel.SendMessageAsync(embed: embedBuilder.Build(), components: Utilities.CreateMessageJumpButton(newMessage).Build());
             }
 
         }).ContinueWith(async t =>
