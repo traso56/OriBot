@@ -331,30 +331,21 @@ public class EventHandler : DiscordClientService
     {
         Task.Run(async () =>
         {
-            string cached = before.Value.GetDisplayAvatarUrl(ImageFormat.Auto) ?? before.Value.GetDefaultAvatarUrl();
-
             if (before.Value is null)
                 return;
 
-            if (cached == (after.GetDisplayAvatarUrl() ?? after.GetDefaultAvatarUrl()) && before.Value.DisplayName == after.DisplayName)
+            if (before.Value.DisplayName == after.DisplayName)
                 return;
 
             var embedBuilder = new EmbedBuilder()
                 .WithColor(ColorConstants.SpiritCyan)
-                .WithAuthor(after)
+                .AddUserAvatar(after)
                 .WithTitle($"{after} changed server profile info.")
                 .AddField("Mention", after.Mention)
                 .AddField("Nickname", $"Previous: `{before.Value.DisplayName}`\nNew: `{after.DisplayName}`")
-                .WithFooter($"Author ID: {after.Id}")
+                .WithDirectUserLink(after)
+                .WithFooter($"Member ID: {after.Id}")
                 .WithCurrentTimestamp();
-
-            if (cached is not null && cached != (after.GetDisplayAvatarUrl() ?? after.GetDefaultAvatarUrl()))
-            {
-                Uri uri = new Uri(cached);
-                HttpClient httpClient = _httpClientFactory.CreateClient();
-                await _globals.MembersChannel.SendFileAsync(await httpClient.GetStreamAsync(cached), Path.GetFileName(uri.LocalPath), "Previous avatar", embed: embedBuilder.Build());
-                return;
-            }
 
             await _globals.MembersChannel.SendMessageAsync(embed: embedBuilder.Build());
         }).ContinueWith(async t =>
