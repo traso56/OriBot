@@ -65,4 +65,16 @@ public class Traso : ModuleBase
         await Context.Message.DeleteAsync();
         await ReplyAsync(message, components: buttonBuilder.Build());
     }
+    [ModCommand]
+    [Command("imagesrole")]
+    [Summary("creates the images role message of the server")]
+    public async Task ImagesRoleMessage([Remainder] string message)
+    {
+        ComponentBuilder buttonBuilder = new ComponentBuilder()
+            .WithButton("Obtain images role", ComponentIds.ImagesRoleButtonCreate(), ButtonStyle.Success);
+
+        VolatileData.IgnoredDeletedMessagesIds.Add(Context.Message.Id);
+        await Context.Message.DeleteAsync();
+        await ReplyAsync(message, components: buttonBuilder.Build());
+    }
 }

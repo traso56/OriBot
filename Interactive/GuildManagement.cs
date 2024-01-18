@@ -135,6 +135,27 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
 
         await FollowupAsync("Successfully joined!", ephemeral: true);
     }
+    [ComponentInteraction(ComponentIds.ImagesRoleButtonId)]
+    public async Task ImagesRoleButton()
+    {
+        await DeferAsync(ephemeral: true);
+
+        var guildUser = (SocketGuildUser)Context.User;
+
+        if (guildUser.Roles.Contains(Globals.ImagesRole))
+        {
+            await FollowupAsync("You already have the images role", ephemeral: true);
+        }
+        else if ((DateTimeOffset.UtcNow - guildUser.JoinedAt!).Value.Days < 2)
+        {
+            await FollowupAsync("You haven't been in the server for 2 or more days yet", ephemeral: true);
+        }
+        else
+        {
+            await guildUser.AddRoleAsync(Globals.ImagesRole);
+            await FollowupAsync("Images role given successfully", ephemeral: true);
+        }
+    }
     /********************************************
         USER COMMANDS
     ********************************************/

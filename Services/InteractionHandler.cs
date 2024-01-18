@@ -61,7 +61,7 @@ public class InteractionHandler : DiscordClientService
                     }
                     else
                     {
-                        await context.Interaction.FollowupAsync(errorMessage);
+                        await context.Interaction.FollowupAsync(errorMessage, ephemeral: !isSlashCommand);
                     }
 
                     var exceptionContext = new ExceptionContext(context.Channel);
