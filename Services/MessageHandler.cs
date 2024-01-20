@@ -147,7 +147,7 @@ public partial class MessageHandler : DiscordClientService
                     await ArtChannelCheckAsync(context);
                 }
             }
-            if (oldMessage.Value is IUserMessage oldUserMessage)
+            if (oldMessage.Value is IUserMessage oldUserMessage && oldUserMessage.Content != newMessage.Content)
             {
                 EmbedBuilder embedBuilder = new EmbedBuilder()
                     .WithColor(ColorConstants.SpiritYellow)
