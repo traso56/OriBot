@@ -212,7 +212,6 @@ public static partial class Utilities
 
         return sb.ToString();
     }
-
     /// <summary>
     /// Creates a <see cref="ComponentBuilder"/> with a button with a link to the specified message.
     /// </summary>

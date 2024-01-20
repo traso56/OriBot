@@ -212,7 +212,7 @@ public static partial class Utilities
 
         return sb.ToString();
     }
-
+<<<<<<< Updated upstream
     /// <summary>
     /// Creates a <see cref="ComponentBuilder"/> with a button with a link to the specified message.
     /// </summary>
@@ -223,4 +223,7 @@ public static partial class Utilities
         return new ComponentBuilder()
             .WithButton("Jump", style: ButtonStyle.Link, url: message.GetJumpUrl());
     }
+=======
+
+>>>>>>> Stashed changes
 }
