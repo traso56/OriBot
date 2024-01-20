@@ -18,7 +18,6 @@ public class EventHandler : DiscordClientService
     private readonly VolatileData _volatileData;
     private readonly Globals _globals;
     private readonly IOptionsMonitor<PinOptions> _pinOptions;
-    private readonly IHttpClientFactory _httpClientFactory;
 
     public EventHandler(DiscordSocketClient client, ILogger<EventHandler> logger, ExceptionReporter exceptionReporter, IOptionsMonitor<UserJoinOptions> userJoinOptions,
         MessageUtilities messageUtilities, IDbContextFactory<SpiritContext> dbContextFactory, VolatileData volatileData, Globals globals,
@@ -32,7 +31,6 @@ public class EventHandler : DiscordClientService
         _volatileData = volatileData;
         _globals = globals;
         _pinOptions = pinOptions;
-        _httpClientFactory = httpClientFactory;
 
         Client.AutoModActionExecuted += OnAutoModExecuted;
         Client.AuditLogCreated += OnAuditLogCreated;
