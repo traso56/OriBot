@@ -14,7 +14,6 @@ public static partial class Utilities
     /// <param name="relativeFileLocation">The filepath to append.</param>
     /// <returns>The full filepath.</returns>
     public static string GetLocalFilePath(string relativeFileLocation) => Path.Combine(AppContext.BaseDirectory, "Files", relativeFileLocation);
-
     /// <summary>
     /// A method to disable all buttons in a <see cref="ComponentBuilder"/>.
     /// </summary>
@@ -212,7 +211,6 @@ public static partial class Utilities
 
         return sb.ToString();
     }
-
     /// <summary>
     /// Creates a <see cref="ComponentBuilder"/> with a button with a link to the specified message.
     /// </summary>

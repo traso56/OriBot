@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace OriBot.Utility
 {
-   public static partial class FilteringAndAntiSpam
+    public static partial class FilteringAndAntiSpam
     {
-
         public static List<string> StringWithEmotesToSeparated(string text)
         {
             var info = new StringInfo(text);
@@ -115,7 +110,5 @@ namespace OriBot.Utility
             result.Add(emoteOrString);
             return result;
         }
-
-
     }
 }
