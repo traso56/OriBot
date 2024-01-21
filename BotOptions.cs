@@ -74,3 +74,8 @@ public class PassiveResponsesOptions
     /// </summary>
     public required bool ForceBirthday { get; set; }
 }
+public class MessageAmountQuerying
+{
+    public required string ApiUrl { get; set; }
+    public required string UserId { get; set; }
+}

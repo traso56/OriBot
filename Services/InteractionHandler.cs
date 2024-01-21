@@ -14,15 +14,18 @@ public class InteractionHandler : DiscordClientService
     private readonly InteractionService _interactionService;
     private readonly ExceptionReporter _exceptionReporter;
     private readonly Globals _globals;
+    private readonly VolatileData _volatileData;
 
     public InteractionHandler(DiscordSocketClient client, ILogger<InteractionHandler> logger, IServiceProvider provider,
-        InteractionService interactionService, ExceptionReporter exceptionReporter, Globals globals)
+        InteractionService interactionService, ExceptionReporter exceptionReporter, Globals globals,
+        VolatileData volatileData)
         : base(client, logger)
     {
         _provider = provider;
         _interactionService = interactionService;
         _exceptionReporter = exceptionReporter;
         _globals = globals;
+        _volatileData = volatileData;
     }
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -36,6 +39,10 @@ public class InteractionHandler : DiscordClientService
     {
         Task.Run(async () =>
         {
+            if (context.Interaction.Type == InteractionType.ApplicationCommand
+                && _volatileData.MessagesSent.TryGetValue(context.User.Id, out _))
+                _volatileData.MessagesSent[context.User.Id]++;
+
             if (result.IsSuccess || command is null)
                 return;
 

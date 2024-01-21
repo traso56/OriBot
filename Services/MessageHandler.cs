@@ -185,6 +185,9 @@ public partial class MessageHandler : DiscordClientService
             }
             else //all other channels (in this case guild text channels really)
             {
+                if (_volatileData.MessagesSent.TryGetValue(message.Author.Id, out _))
+                    _volatileData.MessagesSent[message.Author.Id]++;
+
                 if (_volatileData.TicketThreads.TryGetValue(message.Channel.Id, out ulong threadUserId))
                 {
                     MatchCollection matches = MentionRegex().Matches(message.Content);

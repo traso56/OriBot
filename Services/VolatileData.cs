@@ -8,4 +8,6 @@ public class VolatileData
     public ConcurrentHashSet<ulong> IgnoredDeletedMessagesIds { get; } = new ConcurrentHashSet<ulong>();
     public ConcurrentHashSet<ulong> IgnoredKickedUsersIds { get; } = new ConcurrentHashSet<ulong>();
     public ConcurrentDictionary<ulong, ulong> TicketThreads { get; } = new ConcurrentDictionary<ulong, ulong>();
+
+    public ConcurrentDictionary<ulong, int> MessagesSent { get; } = new ConcurrentDictionary<ulong, int>();
 }

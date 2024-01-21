@@ -26,6 +26,7 @@ internal static class Program
             .AddJsonFile("UserJoinOptions.json", optional: false, reloadOnChange: true)
             .AddJsonFile("PinOptions.json", optional: false, reloadOnChange: true)
             .AddJsonFile("PassiveResponsesOptions.json", optional: false, reloadOnChange: true)
+            .AddJsonFile("MessageAmountQuerying.json", optional: false, reloadOnChange: true)
             .Build();
 
         Log.Logger = new LoggerConfiguration()
@@ -82,6 +83,7 @@ internal static class Program
                         .Configure<UserJoinOptions>(configuration)
                         .Configure<PinOptions>(configuration)
                         .Configure<PassiveResponsesOptions>(configuration)
+                        .Configure<MessageAmountQuerying>(configuration)
                         .AddDbContextFactory<SpiritContext>(options => options.UseSqlite($"Data Source={Path.Combine(AppContext.BaseDirectory, "Files", "database.db")}").EnableThreadSafetyChecks(true))
                         .AddHttpClient()
                         // managers

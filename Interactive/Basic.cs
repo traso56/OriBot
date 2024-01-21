@@ -2,6 +2,8 @@
 using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OriBot.Services;
 using OriBot.Utility;
 using System;
@@ -15,7 +17,11 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
 {
     public required InteractionService InteractionService { get; set; }
     public required MessageUtilities MessageUtilities { get; set; }
+    public required VolatileData VolatileData { get; set; }
+    public required IHttpClientFactory HttpClientFactory { get; set; }
+    public required IOptionsMonitor<MessageAmountQuerying> MessageAmountQuerying { get; set; }
     public required IDbContextFactory<SpiritContext> DbContextFactory { get; set; }
+    public required ILogger<Basic> Logger { get; set; }
 
     [SlashCommand("help", "Gives help (hopefully)")]
     public async Task Help()
@@ -78,46 +84,49 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
     [SlashCommand("profile", "Gets the profile of someone")]
     public async Task UserInfo(SocketGuildUser? user = null)
     {
-        const int MAX_LEVEL = 10000;
         int CalculateLevel(int experience)
         {
-            const double PER_LEVEL_MULT = 1.0025;
-            const double LEVEL_1_THRESHOLD = 40;
-
-            double[] LevelToExperience = new double[MAX_LEVEL + 1];
-            int highest = 0;
             double req = 0;
-            LevelToExperience[0] = 0;
-            for (int lvl = 1; lvl <= MAX_LEVEL; lvl++)
+            int currentLevel = 1;
+            while (true)
             {
-                req += LEVEL_1_THRESHOLD * PER_LEVEL_MULT * lvl;
-                LevelToExperience[lvl] = req;
+                req += 40.1 * currentLevel;
+                if (experience < req)
+                    return currentLevel - 1;
+                currentLevel++;
             }
-            //MAX_EXPERIENCE = req;
-            for (int level = 0; level < LevelToExperience.Length - 0; level++)
-            {
-                if (LevelToExperience[level] <= experience)
-                {
-                    highest = level;
-                }
-                else
-                {
-                    // Specifically found a level higher. We didn't run out.
-                    return highest;
-                }
-            }
-            return MAX_LEVEL;
         }
+
         string LevelToRoman(int level) => level > 1 ? " " + Utilities.IntToRoman(level) : "";
 
         await DeferAsync();
         user = (SocketGuildUser)(user ?? Context.User);
 
+        if (!VolatileData.MessagesSent.TryGetValue(user.Id, out int userXp))
+        {
+            try
+            {
+                HttpClient httpClient = HttpClientFactory.CreateClient();
+
+                string url = $"{MessageAmountQuerying.CurrentValue.ApiUrl}" +
+                    $"?authorid={user.Id}" +
+                    $"&serverid={Context.Guild.Id}" +
+                    $"&userid={MessageAmountQuerying.CurrentValue.UserId}";
+
+                string result = await httpClient.GetStringAsync(url);
+                userXp = int.Parse(result);
+                VolatileData.MessagesSent[user.Id] = userXp;
+            }
+            catch (HttpRequestException e)
+            {
+                Logger.LogError(e, "Exception while trying to fetch message amount");
+            }
+        }
+
         using var db = DbContextFactory.CreateDbContext();
 
         var dbUser = db.Users.Include(u => u.UniqueBadges).Include(u => u.UserBadges).ThenInclude(ub => ub.Badge).FirstOrDefault(u => u.UserId == user.Id);
 
-        int userXp = 0;
         if (dbUser is not null)
         {
             foreach (var dbUserBadge in dbUser.UserBadges)
