@@ -75,23 +75,8 @@ public class MyService
     }
 }
 ```
-
-<div style="background-color: #00345c; 
-padding: 10px;
-margin-right: 10px;
-border-radius: 10px;">
-<div style="
-    display: flex;
-    justify-content: left;
-    justify-items: center;
-  ">
-    <span class="material-symbols-outlined"> info </span>
-    <div style="width: 8px;"></div> Info
-  </div>
-<div>
-</div>
-    It is best practice to make injected properties <b> readonly</b>, to ensure that you don't have separate states of services in your classes.
-</div>
+> [!IMPORTANT]
+> *It is best practice to make injected properties **readonly**, to ensure that you don't have separate states of services in your classes*.
 
 For commands, we will use property injection instead:
 ```csharp
@@ -129,23 +114,8 @@ Constructor(IOptionsMonitor<YourOptionsClass> options)
 }
 ```
 
-
-<div style="background-color: #00345c; 
-padding: 10px;
-margin-right: 10px;
-border-radius: 10px;">
-<div style="
-    display: flex;
-    justify-content: left;
-    justify-items: center;
-  ">
-    <span class="material-symbols-outlined"> info </span>
-    <div style="width: 8px;"></div> Info
-  </div>
-<div>
-</div>
-    IOptionsMonitor is used here to ensure that any changes that you make in your configuration files, is automatically applied to the current state. And because of this, you should not store the state of configuration files in a field or property anywhere in your class. to ensure that you are getting the latest state in the configuration file.
-</div>
+> [!TIP]
+> IOptionsMonitor is used here to ensure that any changes that you make in your configuration files, is automatically applied to the current state. And because of this, you should not store the state of configuration files in a field or property anywhere in your class. to ensure that you are getting the latest state in the configuration file.
  
 
 # Utilities
@@ -158,21 +128,8 @@ Remember to add a `summary` to the methods to document their use
 # Commands
 Command classes are transient services which means they are created and destroyed each time a command is run.
 
-<div style="background-color: #553c12; 
-padding: 10px;
-margin-top: 10px;
-margin-right: 10px;
-border-radius: 10px;">
-  <div style="
-    display: flex;
-    justify-content: left;
-    justify-items: center;
-  ">
-    <span class="material-symbols-outlined"> warning </span>
-    <div style="width: 8px;"></div> Warning
-  </div>
-  <div></div> Because transient services are created and destroyed every time a command is run, it means that you cannot store data inside of a command. You must store data using a Singleton
-</div>
+> [!IMPORTANT]
+> Because transient services are created and destroyed every time a command is run, it means that you cannot store data inside of a command. You must store data using a Singleton
 
 There are 2 types of commands: Message commands `>>command` and slash commands `/command`.
 
@@ -208,22 +165,8 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
 }
 ```
 
-<div style="background-color: #00345c; 
-padding: 10px;
-margin-right: 10px;
-border-radius: 10px;">
-<div style="
-    display: flex;
-    justify-content: left;
-    justify-items: center;
-  ">
-    <span class="material-symbols-outlined"> info </span>
-    <div style="width: 8px;"></div> Info
-  </div>
-<div>
-</div>
-    A Bot Owner is distinct from a Moderator, A Moderator should not be able to use Bot Owner commands. and a Bot Owner should not be able to use Moderator commands.
-</div>
+> [!IMPORTANT]
+> A Bot Owner is distinct from a Moderator, A Moderator should not be able to use Bot Owner commands. and a Bot Owner should not be able to use Moderator commands.
 
 For more information see:
 
@@ -257,58 +200,17 @@ public Task StopAsync(CancellationToken cancellationToken)
 
 For more information see: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/host/hosted-services?view=aspnetcore-8.0&tabs=visual-studio
 
-<div style="background-color: #00345c; 
-padding: 10px;
-margin-right: 10px;
-border-radius: 10px;">
-<div style="
-    display: flex;
-    justify-content: left;
-    justify-items: center;
-  ">
-    <span class="material-symbols-outlined"> info </span>
-    <div style="width: 8px;"></div> Info
-  </div>
-<div>
-</div>
-    Unlike singletons you can't inject hosted services. Keep that in mind.
-</div>
+> [!NOTE]
+> Unlike singletons you can't inject hosted services. Keep that in mind.
 
 
 Register the events into methods and then handle their logic inside a `Task.Run()`
 
-<div style="background-color: #00345c; 
-padding: 10px;
-margin-right: 10px;
-border-radius: 10px;">
-<div style="
-    display: flex;
-    justify-content: left;
-    justify-items: center;
-  ">
-    <span class="material-symbols-outlined"> info </span>
-    <div style="width: 8px;"></div> Info
-  </div>
-<div>
-</div>
-    Because events are handled in the same thread as the gateway thread, use Task.Run() to offload the logic into another thread
-</div>
+> [!IMPORTANT]
+> Because events are handled in the same thread as the gateway thread, use Task.Run() to offload the logic into another thread
 
-<div style="background-color: #553c12; 
-padding: 10px;
-margin-top: 10px;
-margin-right: 10px;
-border-radius: 10px;">
-  <div style="
-    display: flex;
-    justify-content: left;
-    justify-items: center;
-  ">
-    <span class="material-symbols-outlined"> warning </span>
-    <div style="width: 8px;"></div> Warning
-  </div>
-  <div></div> Please keep in mind thread safety when you are handling events, Be sure to use mutexes or threads safe C# classes such as concurrent collection, ConcurrentDictionary or ConcurrentBag.
-</div>
+> [!WARNING]
+> Please keep in mind thread safety when you are handling events, Be sure to use mutexes or threads safe C# classes such as concurrent collection, ConcurrentDictionary or ConcurrentBag.
 
 # Background tasks
 Background tasks is code that executes periodically, normally to check for unbans or clear temporary data like user cooldowns, for convenience 3 methods have been provided. One that runs only at the start to set up data, one that runs often, and another that runs sparserly
@@ -316,21 +218,8 @@ Background tasks is code that executes periodically, normally to check for unban
 # Database
 EF Core is used to handle all the database operations. To create a connection to the database first inject a `IDbContextFactory<SpiritContext>` object and create it with `db.CreateDbContext()`
 
-<div style="background-color: #553c12; 
-padding: 10px;
-margin-top: 10px;
-margin-right: 10px;
-border-radius: 10px;">
-  <div style="
-    display: flex;
-    justify-content: left;
-    justify-items: center;
-  ">
-    <span class="material-symbols-outlined"> warning </span>
-    <div style="width: 8px;"></div> Warning
-  </div>
-  <div></div> This object implements IDisposable, make sure to dispose of it properly, such as with the using keyword, or with the IDisposable.Dispose() method
-</div>
+> [!TIP]
+> This object implements IDisposable, make sure to dispose of it properly, such as with the using keyword, or with the IDisposable.Dispose() method
 
 Database objects follow their own style conventions, unlike other types, the names have the "db" prefix to differentiate them from other similar objects for example:
 `dbUser`, `dbBadge` etc.
