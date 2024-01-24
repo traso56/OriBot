@@ -136,31 +136,30 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
                 userXp += dbUniqueBadge.Experience;
         }
 
+        string info = $"Created at: {TimestampTag.FromDateTimeOffset(user.CreatedAt, TimestampTagStyles.LongDate)}\n" +
+            $"Joined at: {TimestampTag.FromDateTimeOffset(user.JoinedAt!.Value, TimestampTagStyles.LongDate)}\n" +
+            $"Experience: {userXp}\n" +
+            $"Level: {CalculateLevel(userXp)}";
+
         EmbedBuilder embedBuilder = new EmbedBuilder()
             .WithColor(dbUser?.Color ?? ColorConstants.SpiritBlack)
             .AddUserAvatar(user)
             .WithTitle(dbUser?.Title ?? $"Profile of {user}")
-            .AddField("Created at", TimestampTag.FromDateTimeOffset(user.CreatedAt, TimestampTagStyles.LongDate), true)
-            .AddField("Joined at", TimestampTag.FromDateTimeOffset(user.JoinedAt!.Value, TimestampTagStyles.LongDate), true)
-            .AddField("Experience", userXp, true)
-            .AddField("Level", CalculateLevel(userXp), true);
+            .AddField("Info", info, false);
 
         if (dbUser?.Description is not null)
             embedBuilder.WithDescription(dbUser.Description);
 
-        bool inline = false;
         if (user.GuildPermissions.BanMembers)
         {
-            embedBuilder.AddField($"{Emotes.PoliceCarEmote} StaffMember", "Anti-Fun Enforcement Badge\n\n*I'm a staff member on this server.*", inline);
-            inline = true;
+            embedBuilder.AddField($"{Emotes.PoliceCarEmote} StaffMember", "Anti-Fun Enforcement Badge\n\n*I'm a staff member on this server.*", true);
         }
         if (dbUser is not null)
         {
             foreach (var userBadge in dbUser.UserBadges)
             {
                 var badge = userBadge.Badge;
-                embedBuilder.AddField($"{badge.Emote} {badge.Name}{LevelToRoman(userBadge.Count)}", $"*{badge.MiniDescription}*\n\n{badge.Description}", inline);
-                inline = true;
+                embedBuilder.AddField($"{badge.Emote} {badge.Name}{LevelToRoman(userBadge.Count)}", $"*{badge.MiniDescription}*\n\n{badge.Description}", true);
             }
             UniqueBadge[] approvedIdeas = dbUser.UniqueBadges.Where(ub => ub.BadgeType == UniqueBadgeType.ApprovedIdea).ToArray();
             if (approvedIdeas.Length > 0)
@@ -170,8 +169,7 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
                 foreach (var dbUniqueBadge in approvedIdeas)
                     sb.Append('\n').Append(dbUniqueBadge.Data);
 
-                embedBuilder.AddField($"{Emotes.LightBulbEmote} Creative Thinker {LevelToRoman(approvedIdeas.Length)}", sb.ToString(), inline);
-                inline = true;
+                embedBuilder.AddField($"{Emotes.LightBulbEmote} Creative Thinker {LevelToRoman(approvedIdeas.Length)}", sb.ToString(), true);
             }
             UniqueBadge[] emojisCreated = dbUser.UniqueBadges.Where(ub => ub.BadgeType == UniqueBadgeType.EmojiCreator).ToArray();
             if (emojisCreated.Length > 0)
@@ -181,7 +179,7 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
                 foreach (var dbUniqueBadge in emojisCreated)
                     sb.Append(dbUniqueBadge.Data);
 
-                embedBuilder.AddField($"{Emotes.NaruEmote} Emoji Creator {LevelToRoman(emojisCreated.Length)}", sb.ToString(), inline);
+                embedBuilder.AddField($"{Emotes.NaruEmote} Emoji Creator {LevelToRoman(emojisCreated.Length)}", sb.ToString(), true);
             }
         }
 

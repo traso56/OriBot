@@ -92,9 +92,6 @@ public static class ExtensionMethods
     /// <returns></returns>
     public static TKey KeyOf<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TValue value)
     {
-        if (!dictionary.Values.Contains(value))
-            throw new InvalidOperationException("The specified value does not exist in this dictionary.");
-
         foreach (TKey key in dictionary.Keys)
         {
             TValue v = dictionary[key];
@@ -109,7 +106,7 @@ public static class ExtensionMethods
     public static T? Random<T>(this IEnumerable<T> enumerable)
     {
         T[] arr = enumerable.ToArray();
-        if (arr.Length == 0) 
+        if (arr.Length == 0)
             return default;
 
         Random rng = new Random();
