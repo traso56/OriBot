@@ -280,6 +280,27 @@ public partial class MessageHandler : DiscordClientService
         }
         else
         {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            var matcher = new PassiveResponseMatching.MatcherBuilder()
+                .AddBeginningMarker
+                .AddAnyPunctuationAndSpace
+                .AddTokens("Don't let our food be denied you put our polyunsaturated fats and triglycerides inside you","thanks alot,","")
+                .AddPunctuationAndSpace
+                .AddTokens("customer")
+                .AddPunctuationAndSpace
+                .AddTokens("And also dont forget to rate our restaurant")
+                .Build;
+            watch.Stop();
+            if (matcher.Match(context.Message.Content))
+            {
+                await context.Channel.SendMessageAsync($"" +
+                    $"Matched nonstrict: True\n" +
+                    $"Matched strict: {matcher.MatchStrict(context.Message.Content)}\n" +
+                    $"Duration: {watch.ElapsedMilliseconds}ms" +
+                    $"");
+            }
+
+                
             await _passiveResponses.ExecuteHandlerAsync(context);
         }
     }
