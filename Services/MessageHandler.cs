@@ -10,6 +10,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using static OriBot.Utility.PassiveResponseMatching;
 
 namespace OriBot.Services;
 
@@ -31,9 +32,13 @@ public partial class MessageHandler : DiscordClientService
     private readonly PassiveResponses _passiveResponses;
     private readonly BotOptions _botOptions;
 
+    private readonly NewPassiveResponses _newPassiveResponses;
+
     public MessageHandler(DiscordSocketClient client, ILogger<DiscordClientService> logger, IServiceProvider provider, CommandService commandService,
          ExceptionReporter exceptionReporter, VolatileData volatileData, Globals globals, MessageUtilities messageUtilities,
-         IDbContextFactory<SpiritContext> dbContextFactory, IOptions<BotOptions> options, PassiveResponses passiveResponses)
+         IDbContextFactory<SpiritContext> dbContextFactory, IOptions<BotOptions> options, PassiveResponses passiveResponses
+        ,NewPassiveResponses newPassiveResponses
+        )
         : base(client, logger)
     {
         _provider = provider;
@@ -45,6 +50,7 @@ public partial class MessageHandler : DiscordClientService
         _dbContextFactory = dbContextFactory;
         _passiveResponses = passiveResponses;
         _botOptions = options.Value;
+        _newPassiveResponses = newPassiveResponses;
 
         commandService.CommandExecuted += OnCommandExecuted;
 
@@ -280,28 +286,8 @@ public partial class MessageHandler : DiscordClientService
         }
         else
         {
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-            var matcher = new PassiveResponseMatching.MatcherBuilder()
-                .AddBeginningMarker
-                .AddAnyPunctuationAndSpace
-                .AddTokens("Don't let our food be denied you put our polyunsaturated fats and triglycerides inside you","thanks alot,","")
-                .AddPunctuationAndSpace
-                .AddTokens("customer")
-                .AddPunctuationAndSpace
-                .AddTokens("And also dont forget to rate our restaurant")
-                .Build;
-            watch.Stop();
-            if (matcher.Match(context.Message.Content))
-            {
-                await context.Channel.SendMessageAsync($"" +
-                    $"Matched nonstrict: True\n" +
-                    $"Matched strict: {matcher.MatchStrict(context.Message.Content)}\n" +
-                    $"Duration: {watch.ElapsedMilliseconds}ms" +
-                    $"");
-            }
-
-                
-            await _passiveResponses.ExecuteHandlerAsync(context);
+            await _newPassiveResponses.Run(context);
+            //await _passiveResponses.ExecuteHandlerAsync(context);
         }
     }
     /********************************************

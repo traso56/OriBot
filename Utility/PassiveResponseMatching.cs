@@ -5,11 +5,35 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using Newtonsoft.Json.Linq;
+
 #nullable enable
 namespace OriBot.Utility
 {
     public static partial class PassiveResponseMatching
     {
+        public static class RegexGenerators
+        {
+            public static string OR(string a, string b) => $"({a}|{b})";
+
+            public static string MultichoiceOR(params string[] strings)
+            {
+                StringBuilder stringBuilder = new();
+                stringBuilder.Append('(');
+                for (int i = 0; i < strings.Length; i++)
+                {
+                    stringBuilder.Append(strings[i]);
+                    if (i < strings.Length - 1)
+                    {
+                        stringBuilder.Append('|');
+                    }
+                }
+                stringBuilder.Append(')');
+                return stringBuilder.ToString();
+            }
+
+        }
+
         public static class RegexConstants
         {
             public static string atleastOnePunctuationWSpace => "(,|\\.|!|\\?|~|'|\"| )+";

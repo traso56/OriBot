@@ -98,7 +98,9 @@ internal static class Program
                         .AddSingleton<VolatileData>()
                         .AddSingleton<MessageUtilities>()
                         .AddSingleton<PaginatorFactory>()
+                        .AddSingleton<NewPassiveResponses>()
                         .AddSingleton<PassiveResponses>();
+                    
                 })
                 .UseSerilog()
                 .UseConsoleLifetime()
