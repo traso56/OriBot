@@ -8,6 +8,7 @@ using OriBot.Services;
 using OriBot.Utility;
 using System;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace OriBot.Interactive;
 
@@ -212,11 +213,20 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
     [SlashCommand("whomade", "Checks what user created a specific emote")]
     public async Task WhoMade(string emote)
     {
+        string ExtractNumbers(string input)
+        {
+            string pattern = @"\D+"; // \D matches any non-digit character
+            string result = Regex.Replace(input, pattern, "");
+            return result;
+        }
+
         await DeferAsync();
 
         using var db = DbContextFactory.CreateDbContext();
 
-        var dbUniqueBadge = db.UniqueBadges.FirstOrDefault(ub => ub.Data == emote);
+        string numbers = ExtractNumbers(emote);
+
+        var dbUniqueBadge = db.UniqueBadges.FirstOrDefault(ub => ub.Data.Contains(numbers));
 
         if (dbUniqueBadge is not null)
             await FollowupAsync($"{emote} was made by <@{dbUniqueBadge.UserId}>");
