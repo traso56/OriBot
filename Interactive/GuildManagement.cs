@@ -77,13 +77,19 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
         {
             selectMenuBuilder.AddOption(dbBadges[i].Name, i.ToString());
         }
-        await FollowupAsync("Badges", components: new ComponentBuilder().WithSelectMenu(selectMenuBuilder).Build());
+        await FollowupAsync("Available badges", components: new ComponentBuilder().WithSelectMenu(selectMenuBuilder).Build());
         var question = await GetOriginalResponseAsync();
         var selectedOption = await MessageUtilities.AwaitComponentAsync(question.Id, Context.User.Id, MessageUtilities.ComponentType.SelectMenu);
-        await question.ModifyAsync(x => x.Components = new ComponentBuilder().Build());
 
         if (selectedOption is null)
+        {
+            await question.ModifyAsync(m =>
+            {
+                m.Content = "Command cancelled";
+                m.Components = new ComponentBuilder().Build();
+            });
             return;
+        }
 
         int idToAdd = int.Parse(selectedOption.Data.Values.ElementAt(0));
         var dbBadge = dbBadges[idToAdd];
@@ -93,7 +99,11 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
         dbUser.Badges = [dbBadge];
         db.SaveChanges();
 
-        await question.ModifyAsync(x => x.Content = $"Added {dbBadge.Name} to {target.Username}");
+        await question.ModifyAsync(m =>
+        {
+            m.Content = $"Added {dbBadge.Name} to {target.Username}";
+            m.Components = new ComponentBuilder().Build();
+        });
     }
     /********************************************
         WELCOME BUTTON
