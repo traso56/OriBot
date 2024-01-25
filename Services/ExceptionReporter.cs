@@ -32,13 +32,11 @@ public partial class ExceptionReporter
     [GeneratedRegex("```", RegexOptions.Compiled)]
     private static partial Regex BlockDelimiterRegex();
 
-    private readonly DiscordSocketClient _client;
     private readonly ILogger<ExceptionReporter> _logger;
     private readonly Globals _globals;
 
-    public ExceptionReporter(DiscordSocketClient client, ILogger<ExceptionReporter> logger, Globals globals)
+    public ExceptionReporter(ILogger<ExceptionReporter> logger, Globals globals)
     {
-        _client = client;
         _logger = logger;
         _globals = globals;
     }

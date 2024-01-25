@@ -19,9 +19,11 @@ public class EventHandler : DiscordClientService
     private readonly Globals _globals;
     private readonly IOptionsMonitor<PinOptions> _pinOptions;
 
+    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+
     public EventHandler(DiscordSocketClient client, ILogger<EventHandler> logger, ExceptionReporter exceptionReporter, IOptionsMonitor<UserJoinOptions> userJoinOptions,
         MessageUtilities messageUtilities, IDbContextFactory<SpiritContext> dbContextFactory, VolatileData volatileData, Globals globals,
-        IOptionsMonitor<PinOptions> pinOptions, IHttpClientFactory httpClientFactory)
+        IOptionsMonitor<PinOptions> pinOptions)
         : base(client, logger)
     {
         _exceptionReporter = exceptionReporter;
@@ -68,26 +70,26 @@ public class EventHandler : DiscordClientService
             EmbedBuilder embedBuilder = new EmbedBuilder()
                 .WithColor(ColorConstants.SpiritBlue)
                 .AddUserAvatar(user)
-                .WithTitle(user.ToString())
+                .AddField("User", user.Mention, true)
                 .WithCurrentTimestamp();
 
             switch (eventype)
             {
                 case VoiceActivityEventType.Leave:
-                    embedBuilder = embedBuilder.WithTitle("This user left a voice channel")
-                    .AddField("Voice channel", before.VoiceChannel!.Mention);
-
+                    embedBuilder
+                        .WithTitle($"{user.Username} left a voice channel")
+                        .AddField("Voice channel", before.VoiceChannel!.Mention, true);
                     break;
                 case VoiceActivityEventType.Join:
-                    embedBuilder = embedBuilder.WithTitle("This user joined a voice channel")
-                    .AddField("Voice channel", after.VoiceChannel!.Mention);
-
+                    embedBuilder
+                        .WithTitle($"{user.Username} joined a voice channel")
+                        .AddField("Voice channel", after.VoiceChannel!.Mention, true);
                     break;
                 case VoiceActivityEventType.Move:
-                    embedBuilder = embedBuilder.WithTitle("This user moved between voice channels")
-                    .AddField("Previous voice channel", before.VoiceChannel!.Mention)
-                    .AddField("New voice channel", after.VoiceChannel!.Mention);
-
+                    embedBuilder
+                        .WithTitle($"{user.Username} changed voice channels")
+                        .AddField("Previous voice channel", before.VoiceChannel!.Mention, true)
+                        .AddField("New voice channel", after.VoiceChannel!.Mention, true);
                     break;
                 default:
                     throw new InvalidEnumArgumentException("Voice enum stae is invalid.");
@@ -288,20 +290,34 @@ public class EventHandler : DiscordClientService
     {
         Task.Run(async () =>
         {
-            if (channel.Id == _globals.ArtChannel.Id) //art channel stuff
+            if (channel.Id != _globals.ArtChannel.Id || reaction.UserId == Client.CurrentUser.Id) //art channel stuff
+                return;
+
+            if (reaction.Emote.Equals(Emotes.CrossMark))
             {
-                SocketTextChannel artChannel = _globals.MainGuild.GetTextChannel(_globals.ArtChannel.Id);
-                IUserMessage reactedMessage = message.Value ?? (IUserMessage)await artChannel.GetMessageAsync(message.Id);
-                if (reaction.UserId != Client.CurrentUser.Id) // message is not pinned and bot already reacted
+                await _semaphore.WaitAsync();
+                try
                 {
-                    if (reaction.UserId == reactedMessage.Author.Id && reaction.Emote.Equals(Emotes.CrossMark))
-                    {
+                    IUserMessage reactedMessage = message.Value ?? (IUserMessage)await _globals.ArtChannel.GetMessageAsync(message.Id);
+                    if (reaction.UserId == reactedMessage.Author.Id)
                         await reactedMessage.RemoveAllReactionsForEmoteAsync(Emotes.Pin); //if image author reacts with "X" then remove all pins
-                    }
-                    else if (reactedMessage.Reactions.TryGetValue(Emotes.Pin, out ReactionMetadata metaData)
+                }
+                finally
+                {
+                    _semaphore.Release();
+                }
+            }
+            else if (reaction.Emote.Equals(Emotes.Pin))
+            {
+                await _semaphore.WaitAsync();
+                try
+                {
+                    IUserMessage reactedMessage = message.Value ?? (IUserMessage)await _globals.ArtChannel.GetMessageAsync(message.Id);
+                    if (reactedMessage.Reactions.TryGetValue(Emotes.Pin, out ReactionMetadata metaData)
                         && metaData.IsMe && metaData.ReactionCount >= _pinOptions.CurrentValue.PinAmount
                         && DateTimeOffset.UtcNow - reactedMessage.CreatedAt < new TimeSpan(45, 0, 0, 0)) //is it a pin and was it created less than 45 days ago?
                     {
+
                         await reactedMessage.RemoveReactionAsync(Emotes.Pin, Client.CurrentUser);
 
                         EmbedBuilder embedBuilder = Utilities.QuoteUserMessage($"Post by {reactedMessage.Author.Username}", reactedMessage,
@@ -314,6 +330,10 @@ public class EventHandler : DiscordClientService
                         Utilities.AddBadgeToUser(db, reactedMessage.Author, DbBadges.Pincushion);
                         db.SaveChanges();
                     }
+                }
+                finally
+                {
+                    _semaphore.Release();
                 }
             }
         }).ContinueWith(async t =>
