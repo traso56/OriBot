@@ -263,7 +263,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
         OnlyLogChannel
     }
     [ModCommand]
-    [SlashCommand("mute", "Mutes an user")]
+    [SlashCommand("mute", "Mutes a user")]
     public async Task Mute(SocketGuildUser target, [MinLength(3)] string reason, TimeSpan duration, Notify notifyIn)
     {
         await DeferAsync(ephemeral: true);
@@ -329,7 +329,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
         await FollowupAsync("Success");
     }
     [ModCommand]
-    [SlashCommand("unmute", "Unmutes an user")]
+    [SlashCommand("unmute", "Unmutes a user")]
     public async Task Unmute(SocketGuildUser target, [MinLength(3)] string reason, Notify notifyIn)
     {
         await DeferAsync(ephemeral: true);
@@ -379,7 +379,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
         await FollowupAsync("Success");
     }
     [ModCommand]
-    [SlashCommand("warn", "Warns an user")]
+    [SlashCommand("warn", "Warns a user")]
     public async Task Warn(SocketGuildUser target, [MinLength(3)] string reason, Notify notifyIn)
     {
         await DeferAsync(ephemeral: true);
@@ -445,7 +445,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
         SevenDays = 7
     }
     [ModCommand]
-    [SlashCommand("ban", "Bans an user")]
+    [SlashCommand("ban", "Bans a user")]
     public async Task Ban(SocketUser target, [MinLength(3)] string reason, TimeSpan? duration = null,
         Notify notifyIn = Notify.OnlyLogChannel, PruneDays pruneDays = PruneDays.ZeroDays)
     {
@@ -514,7 +514,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
         await FollowupAsync("Success");
     }
     [ModCommand]
-    [SlashCommand("unban", "Unbans an user")]
+    [SlashCommand("unban", "Unbans a user")]
     public async Task Unban(SocketUser target, [MinLength(3)] string reason)
     {
         await DeferAsync(ephemeral: true);

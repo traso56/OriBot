@@ -64,7 +64,7 @@ public static partial class Utilities
         }
     }
     /// <summary>
-    /// Creates an <see cref="EmbedBuilder"/> with the information from an user message.
+    /// Creates an <see cref="EmbedBuilder"/> with the information from a user message.
     /// </summary>
     /// <param name="title">Title of the <see cref="EmbedBuilder"/></param>
     /// <param name="message">The <see cref="IUserMessage"/> to get data from.</param>

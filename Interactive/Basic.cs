@@ -208,5 +208,19 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
     {
         await RespondAsync(Emotes.OriHugKu.ToString());
     }
+    [CommandsChannel]
+    [SlashCommand("whomade", "Checks what user created a specific emote")]
+    public async Task WhoMade(string emote)
+    {
+        await DeferAsync();
 
+        using var db = DbContextFactory.CreateDbContext();
+
+        var dbUniqueBadge = db.UniqueBadges.FirstOrDefault(ub => ub.Data == emote);
+
+        if (dbUniqueBadge is not null)
+            await FollowupAsync($"{emote} was made by <@{dbUniqueBadge.UserId}>");
+        else
+            await FollowupAsync("I'm sorry. I don't know who made this emoji");
+    }
 }

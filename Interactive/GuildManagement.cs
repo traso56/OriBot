@@ -58,7 +58,7 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
         await FollowupAsync($"badge {name} added");
     }
     [ModCommand]
-    [SlashCommand("addbadgetouser", "adds a badge to an user")]
+    [SlashCommand("addbadgetouser", "adds a badge to a user")]
     public async Task AddGlobalBadgeToUser(SocketUser target)
     {
         await DeferAsync();
@@ -104,6 +104,29 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
             m.Content = $"Added {dbBadge.Name} to {target.Username}";
             m.Components = new ComponentBuilder().Build();
         });
+    }
+    [ModCommand]
+    [SlashCommand("addemojicreatorbadge", "adds the emoji creator badge to a user")]
+    public async Task AddEmojiCreatorBadge(SocketGuildUser target, string emoji)
+    {
+        await DeferAsync();
+
+        using var db = DbContextFactory.CreateDbContext();
+
+        var dbUser = db.Users.FindOrCreate(target);
+
+        var dbUniqueBadge = new UniqueBadge()
+        {
+            Data = emoji,
+            BadgeType = UniqueBadgeType.EmojiCreator,
+            Experience = 300,
+            User = dbUser
+        };
+
+        db.UniqueBadges.Add(dbUniqueBadge);
+        db.SaveChanges();
+
+        await FollowupAsync($"added new emoji {emoji} to {target}");
     }
     /********************************************
         WELCOME BUTTON
