@@ -49,7 +49,7 @@ public class PinOptions
 {
     public required int PinAmount { get; set; }
 }
-public class PassiveResponsesOptions
+public class NewPassiveResponsesOptions
 {
     public required bool Enabled { get; set; }
     public required bool AllowInAnyChannel { get; set; }

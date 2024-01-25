@@ -82,7 +82,7 @@ internal static class Program
                         .Configure<ComponentNegativeResponsesOptions>(configuration)
                         .Configure<UserJoinOptions>(configuration)
                         .Configure<PinOptions>(configuration)
-                        .Configure<PassiveResponsesOptions>(configuration)
+                        .Configure<NewPassiveResponsesOptions>(configuration)
                         .Configure<MessageAmountQuerying>(configuration)
                         .AddDbContextFactory<SpiritContext>(options => options.UseSqlite($"Data Source={Path.Combine(AppContext.BaseDirectory, "Files", "database.db")}").EnableThreadSafetyChecks(true))
                         .AddHttpClient()
@@ -98,8 +98,7 @@ internal static class Program
                         .AddSingleton<VolatileData>()
                         .AddSingleton<MessageUtilities>()
                         .AddSingleton<PaginatorFactory>()
-                        .AddSingleton<NewPassiveResponses>()
-                        .AddSingleton<PassiveResponses>();
+                        .AddSingleton<NewPassiveResponses>();
                     
                 })
                 .UseSerilog()

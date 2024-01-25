@@ -29,14 +29,13 @@ public partial class MessageHandler : DiscordClientService
     private readonly Globals _globals;
     private readonly MessageUtilities _messageUtilities;
     private readonly IDbContextFactory<SpiritContext> _dbContextFactory;
-    private readonly PassiveResponses _passiveResponses;
     private readonly BotOptions _botOptions;
 
     private readonly NewPassiveResponses _newPassiveResponses;
 
     public MessageHandler(DiscordSocketClient client, ILogger<DiscordClientService> logger, IServiceProvider provider, CommandService commandService,
          ExceptionReporter exceptionReporter, VolatileData volatileData, Globals globals, MessageUtilities messageUtilities,
-         IDbContextFactory<SpiritContext> dbContextFactory, IOptions<BotOptions> options, PassiveResponses passiveResponses
+         IDbContextFactory<SpiritContext> dbContextFactory, IOptions<BotOptions> options
         ,NewPassiveResponses newPassiveResponses
         )
         : base(client, logger)
@@ -48,7 +47,6 @@ public partial class MessageHandler : DiscordClientService
         _globals = globals;
         _messageUtilities = messageUtilities;
         _dbContextFactory = dbContextFactory;
-        _passiveResponses = passiveResponses;
         _botOptions = options.Value;
         _newPassiveResponses = newPassiveResponses;
 

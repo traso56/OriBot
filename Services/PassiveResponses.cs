@@ -11,11 +11,11 @@ namespace OriBot.Services;
 
 public class PassiveResponses
 {
-    private readonly IOptionsMonitor<PassiveResponsesOptions> _passiveResponsesOptions;
+    private readonly IOptionsMonitor<NewPassiveResponsesOptions> _passiveResponsesOptions;
     private readonly Globals _globals;
     private readonly ILogger<PassiveResponses> _logger;
 
-    public PassiveResponses(IOptionsMonitor<PassiveResponsesOptions> passiveResponsesOptions, Globals globals, ILogger<PassiveResponses> logger)
+    public PassiveResponses(IOptionsMonitor<NewPassiveResponsesOptions> passiveResponsesOptions, Globals globals, ILogger<PassiveResponses> logger)
     {
         _passiveResponsesOptions = passiveResponsesOptions;
         _globals = globals;

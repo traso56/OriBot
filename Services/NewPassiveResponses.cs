@@ -12,6 +12,7 @@ using static OriBot.Utility.PassiveResponseMatching;
 using OriBot.Utility;
 using Discord.Commands;
 using Discord;
+using Discord.WebSocket;
 
 namespace OriBot.Services
 {
@@ -185,7 +186,7 @@ namespace OriBot.Services
         public static string[] oriBotOptions = new string[]
 {
     // ((<:)([a-z]|[A-Z]|[0-9]|_)+:)+
-    "ori", "ori-o", "orio", "ori#8480", "616136907860213760", "<@616136907860213760>", "<@!616136907860213760>"
+    "ori", "ori-o", "orio", "ori#8480", "616136907860213760", "<@616136907860213760>", "<@!616136907860213760>", "<@1197071082939752468>", "<@!1197071082939752468>"
 };
         #endregion
         #region Comments to the bot
@@ -249,60 +250,63 @@ namespace OriBot.Services
         #endregion
         #region Asking Ori's Gender
         public static readonly string[] AskingAboutOriGender = new string[] {
-    $"{PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} a boy or a girl",
-    $"{PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} boy or girl",
+    $"{RegexGenerators.MultichoiceOR(oriBotOptions)} a boy or a girl",
+    $"{RegexGenerators.MultichoiceOR(oriBotOptions)} boy or girl",
 
-    $"{PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} male or female",
-    $"{PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} a male or a female",
+    $"{RegexGenerators.MultichoiceOR(oriBotOptions)} male or female",
+    $"{RegexGenerators.MultichoiceOR(oriBotOptions)} a male or a female",
 
-    $"{PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} a boy or girl",
-    $"{PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} a male or female",
+    $"{RegexGenerators.MultichoiceOR(oriBotOptions)} a boy or girl",
+    $"{RegexGenerators.MultichoiceOR(oriBotOptions)} a male or female",
 
-    $"{PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} a girl or a boy",
-    $"{PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} girl or boy",
+    $"{RegexGenerators.MultichoiceOR(oriBotOptions)} a girl or a boy",
+    $"{RegexGenerators.MultichoiceOR(oriBotOptions)} girl or boy",
 
-    $"{PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} female or male",
-    $"{PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} a female or a male",
+    $"{RegexGenerators.MultichoiceOR(oriBotOptions)} female or male",
+    $"{RegexGenerators.MultichoiceOR(oriBotOptions)} a female or a male",
 
-    $"{PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} a girl or boy",
-    $"{PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} a female or male",
+    $"{RegexGenerators.MultichoiceOR(oriBotOptions)} a girl or boy",
+    $"{RegexGenerators.MultichoiceOR(oriBotOptions)} a female or male",
 
-    $"is {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} a boy or a girl",
-    $"is {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} boy or girl",
+    $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} a boy or a girl",
+    $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} boy or girl",
 
-    $"is {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} male or female",
-    $"is {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} a male or a female",
+    $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} male or female",
+    $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} a male or a female",
 
-    $"is {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} a boy or girl",
-    $"is {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} a male or female",
+    $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} a boy or girl",
+    $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} a male or female",
 
-    $"is {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} a girl or a boy",
-    $"is {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} girl or boy",
+    $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} a girl or a boy",
+    $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} girl or boy",
 
-    $"is {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} female or male",
-    $"is {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} a female or a male",
+    $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} female or male",
+    $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} a female or a male",
 
-    $"is {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} a girl or boy",
-    $"is {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} a female or male",
+    $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} a girl or boy",
+    $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} a female or male",
 
-    $"what is {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)}s gender",
-    $"what is {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)}'s gender",
-    $"whats {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)}s gender",
-    $"whats {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)}'s gender",
-    $"what is the gender of {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)}",
-    $"whats the gender of {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)}",
-    $"what gender is {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)}",
+    $"what is {RegexGenerators.MultichoiceOR(oriBotOptions)}s gender",
+    $"what is {RegexGenerators.MultichoiceOR(oriBotOptions)}'s gender",
+    $"whats {RegexGenerators.MultichoiceOR(oriBotOptions)}s gender",
+    $"whats {RegexGenerators.MultichoiceOR(oriBotOptions)}'s gender",
+    $"what is the gender of {RegexGenerators.MultichoiceOR(oriBotOptions)}",
+    $"whats the gender of {RegexGenerators.MultichoiceOR(oriBotOptions)}",
+    $"what gender is {RegexGenerators.MultichoiceOR(oriBotOptions)}",
 
-    $"whats {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} gender",
-    $"what is {PassiveResponseMatching.RegexGenerators.MultichoiceOR(oriBotOptions)} gender",
+    $"whats {RegexGenerators.MultichoiceOR(oriBotOptions)} gender",
+    $"what is {RegexGenerators.MultichoiceOR(oriBotOptions)} gender",
 };
         #endregion
     }
 
-    public class MatcherAndResponses(Matcher matcher, List<string> responses)
+    public class MatcherAndResponses(Matcher matcher, List<string> responses,string tag = "")
     {
         private readonly Matcher _matcher = matcher;
+        private readonly string _tag = tag;
         private readonly List<string> _responses = responses;
+
+        public string Tag => _tag;
 
         public bool Match(string query, out List<string>? responses2)
         {
@@ -598,7 +602,22 @@ namespace OriBot.Services
                      Emotes.OriHype.ToString()! + " :tada:",
                     "Thank you!",
                     "Hooray! :tada:"
-                ]
+                ],
+                "birthday"
+            ),
+            new(
+                new MatcherBuilder()
+                .AddBeginningMarker
+                .AddAnyPunctuation
+                .AddTokens(QueryLibrary.birthdayOptions)
+                .AddSpaceOrPeriod
+                .AddTokens(QueryLibrary.oriBotOptions)
+                .Build,
+                [
+                    "Today's not my birthday! It's on the 11th of March.",
+                    "I think you might have mixed up the date, it's on the 11th of March!"
+                ],
+                "notbirthday"
             ),
 #endregion
         ];
@@ -608,30 +627,125 @@ namespace OriBot.Services
 
     public class NewPassiveResponses
     {
-       // private readonly IOptionsMonitor<NewPassiveResponses> _passiveResponsesOptions;
+        private readonly IOptionsMonitor<NewPassiveResponsesOptions> _passiveResponsesOptions;
         private readonly Globals _globals;
         private readonly ILogger<NewPassiveResponses> _logger;
 
+        
+        #region Configs
 
+        private static readonly Random RNG = new Random();
 
-        public NewPassiveResponses(/*IOptionsMonitor<NewPassiveResponses> passiveResponsesOptions, */Globals globals, ILogger<NewPassiveResponses> logger)
+        public bool RandomlyUseKuResponse => KuChance == 1 || RNG.NextDouble() >= 1.0 - KuChance;
+
+        /// <summary>
+        /// Whether or not this <see cref="PassiveHandler"/> is active.
+        /// </summary>
+        private bool IsSystemEnabled => _passiveResponsesOptions.CurrentValue.Enabled;
+
+        /// <summary>
+        /// Whether or not this handler can trigger in all channels or just #bot-commands
+        /// </summary>
+        private bool AllowInAnyChannel => _passiveResponsesOptions.CurrentValue.AllowInAnyChannel;
+
+        /// <summary>
+        /// The time that a user must wait before they can get another response from the bot.
+        /// </summary>
+        private int CooldownTimeMS => _passiveResponsesOptions.CurrentValue.CooldownTimeMS;
+
+        /// <summary>
+        /// Whether or not the cooldown system is enabled.
+        /// </summary>
+        private bool IsCooldownEnabled => _passiveResponsesOptions.CurrentValue.IsCooldownEnabled;
+
+        /// <summary>
+        /// The chance of Ku chiming in.
+        /// </summary>
+        private double KuChance => _passiveResponsesOptions.CurrentValue.KuChance;
+
+        /// <summary>
+        /// Force the system to believe it's march 11.
+        /// </summary>
+        private bool ForceBirthday => _passiveResponsesOptions.CurrentValue.ForceBirthday;
+
+        /// <summary>
+        /// A dictionary of user ID to epoch that represents when the user last used this handler.
+        /// </summary>
+        private static readonly Dictionary<ulong, long> MemberLastUsedEpoch = new Dictionary<ulong, long>();
+
+        #endregion
+
+        public NewPassiveResponses(IOptionsMonitor<NewPassiveResponsesOptions> passiveResponsesOptions, Globals globals, ILogger<NewPassiveResponses> logger)
         {
-            //_passiveResponsesOptions = passiveResponsesOptions;
+            _passiveResponsesOptions = passiveResponsesOptions;
             _globals = globals;
             _logger = logger;
         }
 
+        public async Task Respond(string message, SocketCommandContext context)
+        {
+            message = message.Replace("{USERPING}", context.User.Mention);
+            if (IsCooldownEnabled)
+            {
+                MemberLastUsedEpoch[context.User.Id] = DateTime.UtcNow.ToBinary();
+            }
+            if (RandomlyUseKuResponse)
+            {
+                await context.Message.ReplyAsync(Emotes.OriKu + ": " + QueryLibrary.RandomKuResponse + $"\n\n{Emotes.OriFace}: " + message);
+                return; // Exit here.
+            }
+            else
+            {
+                await context.Message.ReplyAsync(message);
+                return; // Exit here.
+            }
+        }
+
         public async Task Run(SocketCommandContext context)
         {
+            if (!IsSystemEnabled) // Abort if disabled
+                return;
+
+            var message = context.Message;
+
             if (QuestionsAndResponses.askingAboutGender.MatchRandom(context.Message.Content,out string response))
             {
                 await context.Message.ReplyAsync(response);
             }
+
+            if (!AllowInAnyChannel && message.Channel.Id != _globals.CommandsChannel.Id && !((SocketGuildUser)context.User).GuildPermissions.BanMembers) return;
+
+            if (MemberLastUsedEpoch.TryGetValue(context.User.Id, out long value))
+            {
+                DateTime lastUsed = DateTime.FromBinary(value);
+                TimeSpan latency = DateTime.UtcNow - lastUsed;
+                if (latency.TotalMilliseconds < CooldownTimeMS) return;
+            }
+
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            var isbirthday = (now.Month == 3 && now.Day == 11) || ForceBirthday;
             foreach (var item in QuestionsAndResponses.QnA)
             {
                 if (item.MatchRandom(context.Message.Content, out string response2))
                 {
-                    await context.Message.ReplyAsync(response2);
+                    switch (item.Tag)
+                    {
+                        case "birthday":
+                            if (isbirthday)
+                            {
+                                await Respond(response2,context);
+                            }
+                            break;
+                        case "notbirthday":
+                            if (!isbirthday)
+                            {
+                                await Respond(response2, context);
+                            }
+                            break;
+                        default:
+                            await Respond(response2, context);
+                            break;
+                    }
                 }
             }
         }
