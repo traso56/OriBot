@@ -14,8 +14,11 @@ namespace OriBot.Interactive;
 
 [CommandsChannel]
 [RequireContext(ContextType.Guild)]
-public class Basic : InteractionModuleBase<SocketInteractionContext>
+public partial class Basic : InteractionModuleBase<SocketInteractionContext>
 {
+    [GeneratedRegex(@"\D+")]
+    private static partial Regex NumberDetectionRegex();
+
     public required InteractionService InteractionService { get; set; }
     public required MessageUtilities MessageUtilities { get; set; }
     public required VolatileData VolatileData { get; set; }
@@ -213,18 +216,11 @@ public class Basic : InteractionModuleBase<SocketInteractionContext>
     [SlashCommand("whomade", "Checks what user created a specific emote")]
     public async Task WhoMade(string emote)
     {
-        string ExtractNumbers(string input)
-        {
-            string pattern = @"\D+"; // \D matches any non-digit character
-            string result = Regex.Replace(input, pattern, "");
-            return result;
-        }
-
         await DeferAsync();
 
         using var db = DbContextFactory.CreateDbContext();
 
-        string numbers = ExtractNumbers(emote);
+        string numbers = NumberDetectionRegex().Replace(emote, "");
 
         var dbUniqueBadge = db.UniqueBadges.FirstOrDefault(ub => ub.Data.Contains(numbers));
 
