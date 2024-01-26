@@ -25,6 +25,7 @@ public partial class Basic : InteractionModuleBase<SocketInteractionContext>
     public required IHttpClientFactory HttpClientFactory { get; set; }
     public required IOptionsMonitor<MessageAmountQuerying> MessageAmountQuerying { get; set; }
     public required IDbContextFactory<SpiritContext> DbContextFactory { get; set; }
+    public required Globals Globals { get; set; }
     public required ILogger<Basic> Logger { get; set; }
 
     [SlashCommand("help", "Gives help (hopefully)")]
@@ -36,6 +37,11 @@ public partial class Basic : InteractionModuleBase<SocketInteractionContext>
 
         var buttonBuilder = new ComponentBuilder()
             .WithButton("Basic commands", "Basic");
+
+        if (((SocketGuildUser)Context.User).GuildPermissions.BanMembers)
+            buttonBuilder
+                .WithButton("Guild management", "GuildManagement")
+                .WithButton("Moderation", "Moderation");
 
         await RespondAsync("Here's a list of commands and their description:", components: buttonBuilder.Build());
         var infoMessage = await GetOriginalResponseAsync();
@@ -228,5 +234,34 @@ public partial class Basic : InteractionModuleBase<SocketInteractionContext>
             await FollowupAsync($"{emote} was made by <@{dbUniqueBadge.UserId}>", allowedMentions: new AllowedMentions(AllowedMentionTypes.None));
         else
             await FollowupAsync("I'm sorry. I don't know who made this emoji");
+    }
+    [SlashCommand("ticket", "Creates a ticket")]
+    public async Task Ticket([MinLength(3)][MaxLength(20)] string reason)
+    {
+        await DeferAsync(ephemeral: true);
+
+        using var db = DbContextFactory.CreateDbContext();
+
+        if (db.Tickets.Any(t => t.TicketUserId == Context.User.Id))
+        {
+            await FollowupAsync("You have an active ticket");
+            return;
+        }
+
+        IThreadChannel thread = await Globals.FeedbackChannel.CreateThreadAsync($"{Context.User}: {reason}", ThreadType.PrivateThread, invitable: false);
+        await Globals.FeedbackChannel.SendMessageAsync($"{Globals.ModRole.Mention} a new ticket has been created: {thread.Mention}");
+        await thread.SendMessageAsync($"Hello {Context.User.Mention}, what can we help you with?");
+
+        var dbTicket = new Ticket
+        {
+            TicketId = thread.Id,
+            TicketUserId = Context.User.Id
+        };
+        db.Tickets.Add(dbTicket);
+        db.SaveChanges();
+
+        VolatileData.TicketThreads.TryAdd(thread.Id, Context.User.Id);
+
+        await FollowupAsync($"Ticket created: {Globals.FeedbackChannel.Mention}");
     }
 }

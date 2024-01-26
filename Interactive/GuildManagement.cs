@@ -189,36 +189,4 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
             await FollowupAsync("Images role given successfully", ephemeral: true);
         }
     }
-    /********************************************
-        USER COMMANDS
-    ********************************************/
-    [SlashCommand("ticket", "Creates a ticket")]
-    public async Task Ticket([MinLength(3)][MaxLength(20)] string reason)
-    {
-        await DeferAsync(ephemeral: true);
-
-        using var db = DbContextFactory.CreateDbContext();
-
-        if (db.Tickets.Any(t => t.TicketUserId == Context.User.Id))
-        {
-            await FollowupAsync("You have an active ticket");
-            return;
-        }
-
-        IThreadChannel thread = await Globals.FeedbackChannel.CreateThreadAsync($"{Context.User}: {reason}", ThreadType.PrivateThread, invitable: false);
-        await Globals.FeedbackChannel.SendMessageAsync($"{Globals.ModRole.Mention} a new ticket has been created: {thread.Mention}");
-        await thread.SendMessageAsync($"Hello {Context.User.Mention}, what can we help you with?");
-
-        var dbTicket = new Ticket
-        {
-            TicketId = thread.Id,
-            TicketUserId = Context.User.Id
-        };
-        db.Tickets.Add(dbTicket);
-        db.SaveChanges();
-
-        VolatileData.TicketThreads.TryAdd(thread.Id, Context.User.Id);
-
-        await FollowupAsync($"Ticket created: {Globals.FeedbackChannel.Mention}");
-    }
 }
