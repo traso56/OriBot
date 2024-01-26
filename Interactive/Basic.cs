@@ -225,7 +225,7 @@ public partial class Basic : InteractionModuleBase<SocketInteractionContext>
         var dbUniqueBadge = db.UniqueBadges.FirstOrDefault(ub => ub.Data.Contains(numbers));
 
         if (dbUniqueBadge is not null)
-            await FollowupAsync($"{emote} was made by <@{dbUniqueBadge.UserId}>");
+            await FollowupAsync($"{emote} was made by <@{dbUniqueBadge.UserId}>", allowedMentions: new AllowedMentions(AllowedMentionTypes.None));
         else
             await FollowupAsync("I'm sorry. I don't know who made this emoji");
     }
