@@ -186,7 +186,7 @@ namespace OriBot.Services
         public static string[] oriBotOptions = new string[]
 {
     // ((<:)([a-z]|[A-Z]|[0-9]|_)+:)+
-    "ori", "ori-o", "orio", "ori#8480", "616136907860213760", "<@616136907860213760>", "<@!616136907860213760>", "<@1197071082939752468>", "<@!1197071082939752468>"
+    "ori", "ori-o", "orio", "ori#8480", "oribot", "ori bot", "orio bot", "ori-obot", "ori-o bot",  "922448775241429012", "<@922448775241429012>", "<@!922448775241429012>", "<@1197071082939752468>", "<@!1197071082939752468>"
 };
         #endregion
         #region Comments to the bot
@@ -300,22 +300,38 @@ namespace OriBot.Services
         #endregion
     }
 
-    public class MatcherAndResponses(Matcher matcher, List<string> responses,string tag = "")
+    public interface IMatcherAndResponses
     {
-        private readonly Matcher _matcher = matcher;
-        private readonly string _tag = tag;
-        private readonly List<string> _responses = responses;
+        string Tag { get; }
+
+        bool Match(string query, out List<string>? responses);
+
+        bool MatchRandom(string query, out string? response);
+    }
+
+    public class MatcherAndResponses : IMatcherAndResponses
+    {
+        private readonly Matcher _matcher;
+        private readonly string _tag;
+        private readonly List<string> _responses;
+
+        public MatcherAndResponses(Matcher matcher, List<string> responses, string tag = "")
+        {
+            _matcher = matcher;
+            _responses = responses;
+            _tag = tag;
+        }
 
         public string Tag => _tag;
 
-        public bool Match(string query, out List<string>? responses2)
+        public bool Match(string query, out List<string>? responses)
         {
             if (_matcher.MatchStrict(query))
             {
-                responses2 = _responses;
+                responses = _responses;
                 return true;
             }
-            responses2 = null;
+            responses = null;
             return false;
         }
 
@@ -344,9 +360,9 @@ namespace OriBot.Services
                 ]
             );
 
-        public static readonly MatcherAndResponses[] QnA = [
+        public static readonly IMatcherAndResponses[] QnA = [
             #region Hi to ori
-            new(
+            new MatcherAndResponses(
                 new MatcherBuilder()
                 .AddBeginningMarker
                 .AddAnyPunctuation
@@ -367,7 +383,7 @@ namespace OriBot.Services
             ),
             #endregion
             #region Good (time) ori
-            new(
+            new MatcherAndResponses(
                 new MatcherBuilder()
                 .AddBeginningMarker
                 .AddAnyPunctuation
@@ -385,7 +401,7 @@ namespace OriBot.Services
                     "Ready to start the day? " + Emotes.OriHype.ToString()!
                 ]
             ),
-            new(
+            new MatcherAndResponses(
                 new MatcherBuilder()
                 .AddBeginningMarker
                 .AddAnyPunctuation
@@ -400,7 +416,7 @@ namespace OriBot.Services
                     "It sure is!"
                 ]
             ),
-            new(
+            new MatcherAndResponses(
                 new MatcherBuilder()
                 .AddBeginningMarker
                 .AddAnyPunctuation
@@ -415,7 +431,7 @@ namespace OriBot.Services
                     "It sure is!"
                 ]
             ),
-            new(
+            new MatcherAndResponses(
                 new MatcherBuilder()
                 .AddBeginningMarker
                 .AddAnyPunctuation
@@ -434,7 +450,7 @@ namespace OriBot.Services
             ),
             #endregion
             #region Goodbye ori
-            new(
+            new MatcherAndResponses(
                 new MatcherBuilder()
                 .AddBeginningMarker
                 .AddAnyPunctuation
@@ -452,7 +468,7 @@ namespace OriBot.Services
             ),
             #endregion
             #region Asking the bot
-            new(
+            new MatcherAndResponses(
                 new MatcherBuilder()
                 .AddBeginningMarker
                 .AddAnyPunctuation
@@ -467,7 +483,7 @@ namespace OriBot.Services
                     "Not bad at all!"
                 ]
             ),
-            new(
+            new MatcherAndResponses(
                 new MatcherBuilder()
                 .AddBeginningMarker
                 .AddAnyPunctuation
@@ -482,7 +498,7 @@ namespace OriBot.Services
                     "It's pretty enjoyable. " +  Emotes.OriHeart.ToString()!
                 ]
             ),
-            new(
+            new MatcherAndResponses(
                 new MatcherBuilder()
                 .AddBeginningMarker
                 .AddAnyPunctuation
@@ -497,7 +513,7 @@ namespace OriBot.Services
                     "I'm pretty happy."
                 ]
             ),
-            new(
+            new MatcherAndResponses(
                 new MatcherBuilder()
                 .AddBeginningMarker
                 .AddAnyPunctuation
@@ -511,7 +527,7 @@ namespace OriBot.Services
                     "Yeah! " +  Emotes.OriHype.ToString()!
                 ]
             ),
-            new(
+            new MatcherAndResponses(
                 new MatcherBuilder()
                 .AddBeginningMarker
                 .AddAnyPunctuation
@@ -528,7 +544,7 @@ namespace OriBot.Services
             ),
             #endregion
             #region Asking about the bot (as comments)
-            new(
+            new MatcherAndResponses(
                 new MatcherBuilder()
                 .AddBeginningMarker
                 .AddAnyPunctuation
@@ -542,7 +558,7 @@ namespace OriBot.Services
                     Emotes.OriHeart.ToString()!,
                 ]
             ),
-            new(
+            new MatcherAndResponses(
                 new MatcherBuilder()
                 .AddBeginningMarker
                 .AddAnyPunctuation
@@ -554,7 +570,7 @@ namespace OriBot.Services
                     "Oh... I don't know! I like greens and blues, oranges and reds, all of them really! I like all of the colors you can find in Nibel. " +  Emotes.OriHeart.ToString()!
                 ]
             ),
-            new(
+            new MatcherAndResponses(
                 new MatcherBuilder()
                 .AddBeginningMarker
                 .AddAnyPunctuation
@@ -572,7 +588,7 @@ namespace OriBot.Services
             #region Asking about the developers (coming soon)
             #endregion
             #region Thanks
-            new(
+            new MatcherAndResponses(
                 new MatcherBuilder()
                 .AddBeginningMarker
                 .AddAnyPunctuation
@@ -590,7 +606,7 @@ namespace OriBot.Services
             ),
             #endregion
             #region Birthday
-            new(
+            new MatcherAndResponses(
                 new MatcherBuilder()
                 .AddBeginningMarker
                 .AddAnyPunctuation
@@ -605,7 +621,7 @@ namespace OriBot.Services
                 ],
                 "birthday"
             ),
-            new(
+            new MatcherAndResponses(
                 new MatcherBuilder()
                 .AddBeginningMarker
                 .AddAnyPunctuation
