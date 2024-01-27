@@ -102,14 +102,4 @@ public static class ExtensionMethods
         }
         throw new InvalidOperationException("The specified value does not exist in this dictionary.");
     }
-
-    public static T? Random<T>(this IEnumerable<T> enumerable)
-    {
-        T[] arr = enumerable.ToArray();
-        if (arr.Length == 0)
-            return default;
-
-        Random rng = new Random();
-        return arr[rng.Next(arr.Length)];
-    }
 }

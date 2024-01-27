@@ -1,190 +1,147 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
-using Newtonsoft.Json.Linq;
+namespace OriBot.Utility;
 
-#nullable enable
-namespace OriBot.Utility
+public static class RegexGenerators
 {
-    public static partial class PassiveResponseMatching
+    public static string OR(string a, string b) => $"({a}|{b})";
+
+    public static string MultichoiceOR(params string[] strings)
     {
-        public static class RegexGenerators
-        {
-            public static string OR(string a, string b) => $"({a}|{b})";
+        var stringBuilder = new StringBuilder('(');
+        foreach (string s in strings)
+            stringBuilder.Append(s).Append('|');
 
-            public static string MultichoiceOR(params string[] strings)
-            {
-                StringBuilder stringBuilder = new();
-                stringBuilder.Append('(');
-                for (int i = 0; i < strings.Length; i++)
-                {
-                    stringBuilder.Append(strings[i]);
-                    if (i < strings.Length - 1)
-                    {
-                        stringBuilder.Append('|');
-                    }
-                }
-                stringBuilder.Append(')');
-                return stringBuilder.ToString();
-            }
-
-        }
-
-        public static class RegexConstants
-        {
-            public static string atleastOnePunctuationWSpace => "(,|\\.|!|\\?|~|'|\"| )+";
-            public static string atleastOnePunctuation => "(,|\\.|!|\\?|~|'|\")+";
-            public static string atleastOneSpaceOrPeriod => "( |\\.)+";
-            public static string atleastOneSpace => " +";
-
-            public static string anyPunctuationWSpace => "(,|\\.|!|\\?|~|'|\"| )*";
-            public static string anyPunctuation => "(,|\\.|!|\\?|~|'|\")*";
-            public static string anySpaceOrPeriod => "( |\\.)*";
-            public static string anySpace => " *";
-        }
-
-
-        public class Matcher(string pattern, bool casesensitive)
-        {
-            private readonly Regex _generatedRegex = new Regex(pattern, casesensitive ? RegexOptions.Compiled : RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-            public bool Match(string text)
-            {
-                var res = _generatedRegex.Match(text);
-                return res.Success;
-
-            }
-
-            public bool MatchStrict(string text)
-            {
-                var res = _generatedRegex.Match(text);
-                return res.Length == text.Length;
-
-            }
-        }
-
-        public class MatcherBuilder()
-        {
-            private StringBuilder stringBuilder = new();
-            public string Result => stringBuilder.ToString();
-
-            public Matcher Build => new(Result,false);
-
-            public MatcherBuilder AddSpace
-            {
-                get
-                {
-                    stringBuilder.Append(RegexConstants.atleastOneSpace);
-                    return this;
-                }
-            }
-            public MatcherBuilder AddBeginningMarker
-            {
-                get
-                {
-                    stringBuilder.Append('^');
-                    return this;
-                }
-            }
-            public MatcherBuilder AddPunctuation
-            {
-                get
-                {
-                    stringBuilder.Append(RegexConstants.atleastOnePunctuation);
-                    return this;
-                }
-            }
-
-            /// <summary>
-            /// With space or period
-            /// </summary>
-            public MatcherBuilder AddSpaceOrPeriod
-            {
-                get
-                {
-                    stringBuilder.Append(RegexConstants.atleastOneSpaceOrPeriod);
-                    return this;
-                }
-            }
-
-            /// <summary>
-            /// With any punctuation and spaces
-            /// </summary>
-            public MatcherBuilder AddPunctuationAndSpace
-            {
-                get
-                {
-                    stringBuilder.Append(RegexConstants.atleastOnePunctuationWSpace);
-                    return this;
-                }
-            }
-
-            public MatcherBuilder AddAnyLengthSpace
-            {
-                get
-                {
-                    stringBuilder.Append(RegexConstants.anySpace);
-                    return this;
-                }
-            }
-            public MatcherBuilder AddAnyPunctuation
-            {
-                get
-                {
-                    stringBuilder.Append(RegexConstants.anyPunctuation);
-                    return this;
-                }
-            }
-
-            /// <summary>
-            /// With space or period
-            /// </summary>
-            public MatcherBuilder AddAnySpaceOrPeriod
-            {
-                get
-                {
-                    stringBuilder.Append(RegexConstants.anySpaceOrPeriod);
-                    return this;
-                }
-            }
-
-            /// <summary>
-            /// With any punctuation and spaces
-            /// </summary>
-            public MatcherBuilder AddAnyPunctuationAndSpace
-            {
-                get
-                {
-                    stringBuilder.Append(RegexConstants.anyPunctuationWSpace);
-                    return this;
-                }
-            }
-
-            public MatcherBuilder AddTokens(params string[] tokens)
-            {
-                stringBuilder.Append('(');
-                for (int i = 0; i < tokens.Length; i++)
-                {
-                    stringBuilder.Append(tokens[i]);
-                    if (i < tokens.Length - 1)
-                    {
-                        stringBuilder.Append('|');
-                    }
-                }
-                stringBuilder.Append(')');
-                return this;
-            }
-
-            public MatcherBuilder AddCustom(string regex)
-            {
-                stringBuilder.Append(regex);
-                return this;
-            }
-        }
-
+        stringBuilder[^1] = ')';
+        return stringBuilder.ToString();
     }
 }
+
+public static class RegexConstants
+{
+    public const string AtleastOnePunctuationWithSpace = """(,|\.|!|\?|~|'|"| )+""";
+    public const string AtleastOnePunctuation = """(,|\.|!|\?|~|'|\")+""";
+    public const string AtleastOneSpaceOrPeriod = """( |\.)+""";
+    public const string AtleastOneSpace = " +";
+
+    public const string AnyPunctuationWithSpace = """(,|\.|!|\?|~|'|\"| )*""";
+    public const string AnyPunctuation = """(,|\.|!|\?|~|'|")*""";
+    public const string AnySpaceOrPeriod = """( |\.)*""";
+    public const string AnySpace = " *";
+}
+
+public class Matcher
+{
+    private readonly Regex _generatedRegex;
+
+    public Matcher(string pattern, bool casesensitive) =>
+        _generatedRegex = new Regex(pattern, (casesensitive ? RegexOptions.None : RegexOptions.IgnoreCase) | RegexOptions.Compiled);
+
+    public bool Match(string text)
+    {
+        var res = _generatedRegex.Match(text);
+        return res.Success;
+    }
+    public bool MatchStrict(string text)
+    {
+        var res = _generatedRegex.Match(text);
+        return res.Length == text.Length;
+    }
+}
+
+public class MatcherBuilder
+{
+    private readonly StringBuilder _stringBuilder = new StringBuilder();
+    public string Result => _stringBuilder.ToString();
+
+    public Matcher Build() => new Matcher(Result, false);
+
+    public MatcherBuilder AddSpace()
+    {
+        _stringBuilder.Append(RegexConstants.AtleastOneSpace);
+        return this;
+    }
+    public MatcherBuilder AddBeginningMarker()
+    {
+        _stringBuilder.Append('^');
+        return this;
+    }
+
+    public MatcherBuilder AddPunctuation()
+    {
+        _stringBuilder.Append(RegexConstants.AtleastOnePunctuation);
+        return this;
+    }
+
+    /// <summary>
+    /// With space or period.
+    /// </summary>
+    public MatcherBuilder AddSpaceOrPeriod()
+    {
+        _stringBuilder.Append(RegexConstants.AtleastOneSpaceOrPeriod);
+        return this;
+    }
+
+    /// <summary>
+    /// With any punctuation and spaces.
+    /// </summary>
+    public MatcherBuilder AddPunctuationAndSpace()
+    {
+        _stringBuilder.Append(RegexConstants.AtleastOnePunctuationWithSpace);
+        return this;
+    }
+
+    public MatcherBuilder AddAnyLengthSpace()
+    {
+        _stringBuilder.Append(RegexConstants.AnySpace);
+        return this;
+    }
+
+    public MatcherBuilder AddAnyPunctuation()
+    {
+        _stringBuilder.Append(RegexConstants.AnyPunctuation);
+        return this;
+    }
+
+    /// <summary>
+    /// With space or period.
+    /// </summary>
+    public MatcherBuilder AddAnySpaceOrPeriod()
+    {
+        _stringBuilder.Append(RegexConstants.AnySpaceOrPeriod);
+        return this;
+    }
+
+    /// <summary>
+    /// With any punctuation and spaces.
+    /// </summary>
+    public MatcherBuilder AddAnyPunctuationAndSpace()
+    {
+        _stringBuilder.Append(RegexConstants.AnyPunctuationWithSpace);
+        return this;
+    }
+
+    public MatcherBuilder AddTokens(params string[] tokens)
+    {
+        _stringBuilder.Append('(');
+        foreach (string token in tokens)
+            _stringBuilder.Append(token);
+
+        _stringBuilder[^1] = ')';
+        return this;
+    }
+
+    /// <summary>
+    /// This normally shouldnt be used, as this can cause unexpected matching behaviour, because unescaped strings will cause bad things.
+    /// This method directly adds a string to the regex.
+    /// </summary>
+    /// <param name="regex"></param>
+    /// <returns></returns>
+    public MatcherBuilder AddCustom(string regex)
+    {
+        _stringBuilder.Append(regex);
+        return this;
+    }
+}
+
