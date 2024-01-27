@@ -77,8 +77,7 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
         {
             selectMenuBuilder.AddOption(dbBadges[i].Name, i.ToString());
         }
-        await FollowupAsync("Available badges", components: new ComponentBuilder().WithSelectMenu(selectMenuBuilder).Build());
-        var question = await GetOriginalResponseAsync();
+        var question = await FollowupAsync("Available badges", components: new ComponentBuilder().WithSelectMenu(selectMenuBuilder).Build());
         var selectedOption = await MessageUtilities.AwaitComponentAsync(question.Id, Context.User.Id, MessageUtilities.ComponentType.SelectMenu);
 
         if (selectedOption is null)
