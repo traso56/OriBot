@@ -21,6 +21,7 @@ public static partial class Utilities
     /// <returns>A new <see cref="ComponentBuilder"/> with buttons disabled in i.t</returns>
     public static ComponentBuilder DisableAllButtons(ComponentBuilder buttonBuilder)
     {
+        
         var newButtonBuilder = new ComponentBuilder();
 
         var rows = buttonBuilder.ActionRows;

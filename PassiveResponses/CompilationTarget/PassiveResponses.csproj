@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="OriBot.Shared2\**" />
+    <EmbeddedResource Remove="OriBot.Shared2\**" />
+    <None Remove="OriBot.Shared2\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="OriBot.Shared2\OriBot.Shared2.csproj" />
+  </ItemGroup>
+
+</Project>

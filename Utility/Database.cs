@@ -45,7 +45,7 @@ public class SpiritContext : DbContext
             .HasOne<User>(p => p.Issuer)
             .WithMany(u => u.PunishmentsIssued)
             .HasForeignKey(p => p.IssuerId);
-
+        
         // make the UserBadge link to hold the many to many relation with payload data
         modelBuilder.Entity<User>()
             .HasMany(u => u.Badges)

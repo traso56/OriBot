@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34309.116
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OriBot", "OriBot.csproj", "{1F697EEB-158A-4183-977D-F3C3359AE8AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OriBot", "OriBot.csproj", "{1F697EEB-158A-4183-977D-F3C3359AE8AD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PassiveResponses", "PassiveResponses\CompilationTarget\PassiveResponses.csproj", "{191AA563-988D-4691-B11A-61F70DF5A0C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OriBot.Shared2", "PassiveResponses\CompilationTarget\OriBot.Shared2\OriBot.Shared2.csproj", "{11B9D369-284C-4510-AD1E-80EBA1D04AE3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{1F697EEB-158A-4183-977D-F3C3359AE8AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F697EEB-158A-4183-977D-F3C3359AE8AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F697EEB-158A-4183-977D-F3C3359AE8AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{191AA563-988D-4691-B11A-61F70DF5A0C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{191AA563-988D-4691-B11A-61F70DF5A0C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{191AA563-988D-4691-B11A-61F70DF5A0C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{191AA563-988D-4691-B11A-61F70DF5A0C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11B9D369-284C-4510-AD1E-80EBA1D04AE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11B9D369-284C-4510-AD1E-80EBA1D04AE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11B9D369-284C-4510-AD1E-80EBA1D04AE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11B9D369-284C-4510-AD1E-80EBA1D04AE3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

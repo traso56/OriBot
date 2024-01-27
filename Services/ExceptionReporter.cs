@@ -67,7 +67,7 @@ public partial class ExceptionReporter
             // report in the place it happened
             if (notifyInPlace && context.Channel is IMessageChannel messageChannel)
             {
-                string errorMessage = $"There was an internal error, please check the logs, pinging {_globals.Traso.Mention}";
+                string errorMessage = $"There was an internal error, please check the logs, pinging ";
                 if (exception is DbUpdateConcurrencyException)
                     errorMessage = $"There was an error updating records in the database, perhaps it was updated elsewhere during this command, pinging {_globals.Traso.Mention}";
                 else if (exception is OverflowException)

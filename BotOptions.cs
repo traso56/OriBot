@@ -79,3 +79,10 @@ public class MessageAmountQuerying
     public required string ApiUrl { get; set; }
     public required string UserId { get; set; }
 }
+
+public class RuntimeCompileOptions
+{
+    
+    public required string CompiledPath { get; set; }
+    public required string DotnetBinPath { get; set; }
+}

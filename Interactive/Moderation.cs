@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using OriBot.Services;
 using OriBot.Utility;
 using System.ComponentModel;
+using OriBot.Shared;
+using System.Diagnostics;
 
 namespace OriBot.Interactive;
 
@@ -17,6 +19,18 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
     public required DiscordSocketClient Client { get; set; }
     public required PaginatorFactory PaginatorFactory { get; set; }
     public required Globals Globals { get; set; }
+
+    public required RuntimeCompilationService RCS { get; set; }
+
+    [ModCommand]
+    [SlashCommand("testrcs", "test runtime compilation service")]
+    public async Task TestRCS(string path,string filename)
+    {
+        await DeferAsync();
+        
+        var entrypoint = (Inherited2)(await RCS.CompileProjectAsAssembly(path, filename)).Instantiate();
+        entrypoint.CalledByCommand();
+    }
 
     [ModCommand]
     [SlashCommand("dm", "dm")]

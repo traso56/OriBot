@@ -51,7 +51,7 @@ public class InteractionHandler : DiscordClientService
                 if (result is ExecuteResult executeResult)
                 {
                     bool isSlashCommand = context.Interaction.Type == InteractionType.ApplicationCommand;
-                    string errorMessage = $"There was an internal error, please check the logs, pinging {_globals.Traso.Mention}";
+                    string errorMessage = $"There was an internal error, please check the logs, pinging ";
                     if (executeResult.Exception is DbUpdateConcurrencyException)
                         errorMessage = $"There was an error updating records in the database, perhaps it was updated elsewhere during this command, pinging {_globals.Traso.Mention}";
                     else if (executeResult.Exception is OverflowException)
