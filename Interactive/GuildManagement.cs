@@ -106,7 +106,7 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
     }
     [ModCommand]
     [SlashCommand("addemojicreatorbadge", "adds the emoji creator badge to a user")]
-    public async Task AddEmojiCreatorBadge(SocketGuildUser target, string emoji)
+    public async Task AddEmojiCreatorBadge(SocketUser target, string emoji)
     {
         await DeferAsync();
 
