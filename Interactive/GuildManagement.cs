@@ -11,6 +11,15 @@ namespace OriBot.Interactive;
 [RequireContext(ContextType.Guild)]
 public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
 {
+    public class TicketModal : IModal
+    {
+        public string Title => "Create ticket";
+
+        [InputLabel("What do you need help with?")]
+        [ModalTextInput("Reason", placeholder: "Ticket topic", minLength: 3, maxLength: 20)]
+        public required string Reason { get; set; }
+    }
+
     public required IDbContextFactory<SpiritContext> DbContextFactory { get; set; }
     public required IOptionsMonitor<UserJoinOptions> UserJoinOptions { get; set; }
     public required Globals Globals { get; set; }
@@ -187,5 +196,39 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
             await guildUser.AddRoleAsync(Globals.ImagesRole);
             await FollowupAsync("Images role given successfully", ephemeral: true);
         }
+    }
+    [ComponentInteraction(ComponentIds.TicketButtonId)]
+    public async Task TicketButton()
+    {
+        await RespondWithModalAsync<TicketModal>("TicketModal");
+    }
+    [ModalInteraction("TicketModal")]
+    public async Task TicketModalResponse(TicketModal modal)
+    {
+        await DeferAsync(ephemeral: true);
+
+        using var db = DbContextFactory.CreateDbContext();
+
+        if (db.Tickets.Any(t => t.TicketUserId == Context.User.Id))
+        {
+            await FollowupAsync("You have an active ticket", ephemeral: true);
+            return;
+        }
+
+        IThreadChannel thread = await Globals.FeedbackChannel.CreateThreadAsync($"{Context.User}: {modal.Reason}", ThreadType.PrivateThread, invitable: false);
+        await Globals.FeedbackChannel.SendMessageAsync($"{Globals.ModRole.Mention} a new ticket has been created: {thread.Mention}");
+        await thread.SendMessageAsync($"Hello {Context.User.Mention}, what can we help you with?");
+
+        var dbTicket = new Ticket
+        {
+            TicketId = thread.Id,
+            TicketUserId = Context.User.Id
+        };
+        db.Tickets.Add(dbTicket);
+        db.SaveChanges();
+
+        VolatileData.TicketThreads.TryAdd(thread.Id, Context.User.Id);
+
+        await FollowupAsync($"Ticket created: {Globals.FeedbackChannel.Mention}", ephemeral: true);
     }
 }

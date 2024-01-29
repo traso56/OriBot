@@ -77,4 +77,16 @@ public class Traso : ModuleBase
         await Context.Message.DeleteAsync();
         await ReplyAsync(message, components: buttonBuilder.Build());
     }
+    [ModCommand]
+    [Command("ticketbutton")]
+    [Summary("creates the button with the ticket command")]
+    public async Task TicketButton([Remainder] string message)
+    {
+        ComponentBuilder buttonBuilder = new ComponentBuilder()
+            .WithButton("Create a new ticket", ComponentIds.TicketButtonCreate(), ButtonStyle.Success);
+
+        VolatileData.IgnoredDeletedMessagesIds.Add(Context.Message.Id);
+        await Context.Message.DeleteAsync();
+        await ReplyAsync(message, components: buttonBuilder.Build());
+    }
 }

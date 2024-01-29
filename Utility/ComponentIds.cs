@@ -13,4 +13,10 @@ public static class ComponentIds
     /// </summary>
     public const string ImagesRoleButtonId = "ImagesRoleButton";
     public static string ImagesRoleButtonCreate() => ImagesRoleButtonId;
+
+    /// <summary>
+    /// TicketButton
+    /// </summary>
+    public const string TicketButtonId = "TicketButton";
+    public static string TicketButtonCreate() => TicketButtonId;
 }
