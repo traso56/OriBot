@@ -27,7 +27,7 @@ internal static class Program
             .AddJsonFile("PinOptions.json", optional: false, reloadOnChange: true)
             .AddJsonFile("PassiveResponsesOptions.json", optional: false, reloadOnChange: true)
             .AddJsonFile("MessageAmountQuerying.json", optional: false, reloadOnChange: true)
-            .AddJsonFile("RuntimeCompilationOptions.json", optional: false, reloadOnChange: true)
+            //.AddJsonFile("RuntimeCompilationOptions.json", optional: false, reloadOnChange: true)
             .Build();
 
         Log.Logger = new LoggerConfiguration()
@@ -43,7 +43,7 @@ internal static class Program
 
         try
         {
-            
+
             Log.Information("Program starting");
 
             using var host = new HostBuilder()
@@ -86,7 +86,7 @@ internal static class Program
                         .Configure<PinOptions>(configuration)
                         .Configure<NewPassiveResponsesOptions>(configuration)
                         .Configure<MessageAmountQuerying>(configuration)
-                        .Configure<RuntimeCompileOptions>(configuration)
+                        //.Configure<RuntimeCompileOptions>(configuration)
                         .AddDbContextFactory<SpiritContext>(options => options.UseSqlite($"Data Source={Path.Combine(AppContext.BaseDirectory, "Files", "database.db")}").EnableThreadSafetyChecks(true))
                         .AddHttpClient()
                         // managers
@@ -97,13 +97,15 @@ internal static class Program
                         // singletons
                         .AddSingleton<Globals>()
                         .AddHostedService<HostedServiceStarter<Globals>>()
+                        .AddSingleton<NewPassiveResponses>()
+                        .AddHostedService<HostedServiceStarter<NewPassiveResponses>>()
                         .AddSingleton<ExceptionReporter>()
                         .AddSingleton<VolatileData>()
                         .AddSingleton<MessageUtilities>()
                         .AddSingleton<PaginatorFactory>()
-                        .AddSingleton<RuntimeCompilationService>()
-                        .AddSingleton<NewPassiveResponses>();
-                    
+                        //.AddSingleton<RuntimeCompilationService>()
+                        ;
+
                 })
                 .UseSerilog()
                 .UseConsoleLifetime()

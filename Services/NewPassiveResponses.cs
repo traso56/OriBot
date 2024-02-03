@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using OriBot.Utility;
 
@@ -9,48 +9,6 @@ namespace OriBot.Services;
 
 public static class QueryLibrary
 {
-    public static readonly string[] Greetings = new string[]
-    {
-        "hi",
-        "hello",
-        "hey",
-        "whats up",
-        "heya",
-        "hiya",
-        "yo",
-        "greetings",
-        "sup",
-        "whats poppin",
-        "whats crackin",
-        "howdy there",
-        "howdy",
-        "well howdy there",
-        "well howdy",
-        "gday",
-        "gday 2u",
-        "gday 2 you",
-        "gday 2 u",
-        "good day",
-        "goodday",
-        "good day to you",
-        "gday to you",
-        "gday to u",
-        "good day to u",
-        "good day 2 you",
-        "good day 2 u",
-        "good day 2u",
-        "yello",
-        "yellow",
-        "yelo",
-        "elo",
-        "ey",
-        "salutations",
-        "henlo",
-        "ello",
-        "ayo",
-        "eyo",
-        "hio"
-    };
     public static readonly string[] Goodbyes = new string[]
     {
         "bye",
@@ -159,10 +117,6 @@ public static class QueryLibrary
         "what is eti doing", "whats eti doing", "what is xan doing", "whats xan doing",
         "what is eti up to", "whats eti up to", "what is xan up to", "whats xan up to"
     };
-    public static readonly string[] OriBotOptions = new string[]
-    {
-        "ori", "ori-o", "orio", "ori#8480", "oribot", "ori bot", "orio bot", "ori-obot", "ori-o bot", "922448775241429012", "<@922448775241429012>", "<@1197071082939752468>",
-    };
     public static readonly string[] TellActivityGoodOptions = new string[]
     {
         "i hope you are doing well", "i hope you are doing good", "i hope u r doing well", "i hope u r doing good",
@@ -205,77 +159,16 @@ public static class QueryLibrary
         "You know, I *am* capable of speech. ....Yes, mom, text to speech is real speech!",
         "Why is everybody asking me to type in \"John Madden\" into this thing? And \"aeiou\"? What?"
     };
-
-    public static string RandomKuResponse
-    {
-        get
-        {
-            Random rng = new Random();
-
-            if (rng.Next(100) == 0)
-                return Kuresponsesrare[rng.Next(Kuresponsesrare.Length)];
-            else
-                return KuResponses[rng.Next(KuResponses.Length)];
-        }
-    }
-    public static readonly string[] AskingAboutOriGender = new string[]
-    {
-        $"{RegexGenerators.MultichoiceOR(OriBotOptions)} a boy or a girl",
-        $"{RegexGenerators.MultichoiceOR(OriBotOptions)} boy or girl",
-
-        $"{RegexGenerators.MultichoiceOR(OriBotOptions)} male or female",
-        $"{RegexGenerators.MultichoiceOR(OriBotOptions)} a male or a female",
-
-        $"{RegexGenerators.MultichoiceOR(OriBotOptions)} a boy or girl",
-        $"{RegexGenerators.MultichoiceOR(OriBotOptions)} a male or female",
-
-        $"{RegexGenerators.MultichoiceOR(OriBotOptions)} a girl or a boy",
-        $"{RegexGenerators.MultichoiceOR(OriBotOptions)} girl or boy",
-
-        $"{RegexGenerators.MultichoiceOR(OriBotOptions)} female or male",
-        $"{RegexGenerators.MultichoiceOR(OriBotOptions)} a female or a male",
-
-        $"{RegexGenerators.MultichoiceOR(OriBotOptions)} a girl or boy",
-        $"{RegexGenerators.MultichoiceOR(OriBotOptions)} a female or male",
-
-        $"is {RegexGenerators.MultichoiceOR(OriBotOptions)} a boy or a girl",
-        $"is {RegexGenerators.MultichoiceOR(OriBotOptions)} boy or girl",
-
-        $"is {RegexGenerators.MultichoiceOR(OriBotOptions)} male or female",
-        $"is {RegexGenerators.MultichoiceOR(OriBotOptions)} a male or a female",
-
-        $"is {RegexGenerators.MultichoiceOR(OriBotOptions)} a boy or girl",
-        $"is {RegexGenerators.MultichoiceOR(OriBotOptions)} a male or female",
-
-        $"is {RegexGenerators.MultichoiceOR(OriBotOptions)} a girl or a boy",
-        $"is {RegexGenerators.MultichoiceOR(OriBotOptions)} girl or boy",
-
-        $"is {RegexGenerators.MultichoiceOR(OriBotOptions)} female or male",
-        $"is {RegexGenerators.MultichoiceOR(OriBotOptions)} a female or a male",
-
-        $"is {RegexGenerators.MultichoiceOR(OriBotOptions)} a girl or boy",
-        $"is {RegexGenerators.MultichoiceOR(OriBotOptions)} a female or male",
-
-        $"what is {RegexGenerators.MultichoiceOR(OriBotOptions)}s gender",
-        $"what is {RegexGenerators.MultichoiceOR(OriBotOptions)}'s gender",
-        $"whats {RegexGenerators.MultichoiceOR(OriBotOptions)}s gender",
-        $"whats {RegexGenerators.MultichoiceOR(OriBotOptions)}'s gender",
-        $"what is the gender of {RegexGenerators.MultichoiceOR(OriBotOptions)}",
-        $"whats the gender of {RegexGenerators.MultichoiceOR(OriBotOptions)}",
-        $"what gender is {RegexGenerators.MultichoiceOR(OriBotOptions)}",
-
-        $"whats {RegexGenerators.MultichoiceOR(OriBotOptions)} gender",
-        $"what is {RegexGenerators.MultichoiceOR(OriBotOptions)} gender",
-    };
+    public static string[] AskingAboutOriGender;
 }
 
 public interface IMatcherAndResponses
 {
     string Tag { get; }
 
-    bool Match(string query, out List<string>? responses);
+    bool Match(string query, out List<string> responses);
 
-    bool MatchRandom(string query, out string? response);
+    bool MatchRandom(string query, out string response);
 }
 
 public class MatcherAndResponses : IMatcherAndResponses
@@ -318,8 +211,8 @@ public class MatcherAndResponses : IMatcherAndResponses
 
 public static class QuestionsAndResponses
 {
-    public static MatcherAndResponses askingAboutGender = new(
-            new MatcherBuilder()
+    public static MatcherAndResponses AskingAboutGender { get; set; } = new MatcherAndResponses(
+        new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
             .AddTokens(QueryLibrary.AskingAboutOriGender)
@@ -329,15 +222,112 @@ public static class QuestionsAndResponses
             ]
         );
 
-    public static readonly IMatcherAndResponses[] QnA = [
-        #region Hi to ori
+    public static IMatcherAndResponses[] QnA;
+}
+
+public class NewPassiveResponses : BackgroundService
+{
+    private readonly IOptionsMonitor<NewPassiveResponsesOptions> _passiveResponsesOptions;
+    private readonly Globals _globals;
+
+    /// <summary>
+    /// Whether or not this <see cref="PassiveHandler"/> is active.
+    /// </summary>
+    private bool IsSystemEnabled => _passiveResponsesOptions.CurrentValue.Enabled;
+    /// <summary>
+    /// Whether or not this handler can trigger in all channels or just #bot-commands
+    /// </summary>
+    private bool AllowInAnyChannel => _passiveResponsesOptions.CurrentValue.AllowInAnyChannel;
+    /// <summary>
+    /// The time that a user must wait before they can get another response from the bot.
+    /// </summary>
+    private int CooldownTimeMS => _passiveResponsesOptions.CurrentValue.CooldownTimeMS;
+    /// <summary>
+    /// Whether or not the cooldown system is enabled.
+    /// </summary>
+    private bool IsCooldownEnabled => _passiveResponsesOptions.CurrentValue.IsCooldownEnabled;
+    /// <summary>
+    /// The chance of Ku chiming in.
+    /// </summary>
+    private double KuChance => _passiveResponsesOptions.CurrentValue.KuChance;
+    /// <summary>
+    /// Force the system to believe it's march 11.
+    /// </summary>
+    private bool ForceBirthday => _passiveResponsesOptions.CurrentValue.ForceBirthday;
+    /// <summary>
+    /// A dictionary of user ID to epoch that represents when the user last used this handler.
+    /// </summary>
+    private static readonly Dictionary<ulong, long> _memberLastUsedEpoch = new Dictionary<ulong, long>();
+
+    public NewPassiveResponses(IOptionsMonitor<NewPassiveResponsesOptions> passiveResponsesOptions, Globals globals)
+    {
+        _passiveResponsesOptions = passiveResponsesOptions;
+        _globals = globals;
+    }
+
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        string[] oriBotOptions = File.ReadAllLines(Utilities.GetLocalFilePath("Responses/oriBotOptions.txt"));
+
+        QueryLibrary.AskingAboutOriGender = new string[]
+        {
+            $"{RegexGenerators.MultichoiceOR(oriBotOptions)} a boy or a girl",
+            $"{RegexGenerators.MultichoiceOR(oriBotOptions)} boy or girl",
+
+            $"{RegexGenerators.MultichoiceOR(oriBotOptions)} male or female",
+            $"{RegexGenerators.MultichoiceOR(oriBotOptions)} a male or a female",
+
+            $"{RegexGenerators.MultichoiceOR(oriBotOptions)} a boy or girl",
+            $"{RegexGenerators.MultichoiceOR(oriBotOptions)} a male or female",
+
+            $"{RegexGenerators.MultichoiceOR(oriBotOptions)} a girl or a boy",
+            $"{RegexGenerators.MultichoiceOR(oriBotOptions)} girl or boy",
+
+            $"{RegexGenerators.MultichoiceOR(oriBotOptions)} female or male",
+            $"{RegexGenerators.MultichoiceOR(oriBotOptions)} a female or a male",
+
+            $"{RegexGenerators.MultichoiceOR(oriBotOptions)} a girl or boy",
+            $"{RegexGenerators.MultichoiceOR(oriBotOptions)} a female or male",
+
+            $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} a boy or a girl",
+            $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} boy or girl",
+
+            $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} male or female",
+            $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} a male or a female",
+
+            $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} a boy or girl",
+            $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} a male or female",
+
+            $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} a girl or a boy",
+            $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} girl or boy",
+
+            $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} female or male",
+            $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} a female or a male",
+
+            $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} a girl or boy",
+            $"is {RegexGenerators.MultichoiceOR(oriBotOptions)} a female or male",
+
+            $"what is {RegexGenerators.MultichoiceOR(oriBotOptions)}s gender",
+            $"what is {RegexGenerators.MultichoiceOR(oriBotOptions)}'s gender",
+            $"whats {RegexGenerators.MultichoiceOR(oriBotOptions)}s gender",
+            $"whats {RegexGenerators.MultichoiceOR(oriBotOptions)}'s gender",
+            $"what is the gender of {RegexGenerators.MultichoiceOR(oriBotOptions)}",
+            $"whats the gender of {RegexGenerators.MultichoiceOR(oriBotOptions)}",
+            $"what gender is {RegexGenerators.MultichoiceOR(oriBotOptions)}",
+
+            $"whats {RegexGenerators.MultichoiceOR(oriBotOptions)} gender",
+            $"what is {RegexGenerators.MultichoiceOR(oriBotOptions)} gender",
+        };
+
+        QuestionsAndResponses.QnA = [
+            #region Hi to ori
         new MatcherAndResponses(
             new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
-            .AddTokens(QueryLibrary.Greetings)
+            .AddTokens(File.ReadAllLines(Utilities.GetLocalFilePath("Responses/Greetings.txt")))
             .AddSpaceOrPeriod()
-            .AddTokens(QueryLibrary.OriBotOptions)
+            .AddTokens(oriBotOptions)
             .Build(),
             [
                 "Hi, {USERPING}!",
@@ -350,15 +340,15 @@ public static class QuestionsAndResponses
                 "Good to see you, {USERPING}!" + Emotes.OriHeart.ToString()!,
             ]
         ),
-        #endregion
-        #region Good (time) ori
-        new MatcherAndResponses(
+            #endregion
+            #region Good (time) ori
+            new MatcherAndResponses(
             new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
             .AddTokens(QueryLibrary.GoodmorningOptions)
             .AddSpaceOrPeriod()
-            .AddTokens(QueryLibrary.OriBotOptions)
+            .AddTokens(oriBotOptions)
             .Build(),
             [
                 "Good morning!",
@@ -370,13 +360,13 @@ public static class QuestionsAndResponses
                 "Ready to start the day? " + Emotes.OriHype.ToString()!
             ]
         ),
-        new MatcherAndResponses(
+            new MatcherAndResponses(
             new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
             .AddTokens(QueryLibrary.GoodafternoonOptions)
             .AddSpaceOrPeriod()
-            .AddTokens(QueryLibrary.OriBotOptions)
+            .AddTokens(oriBotOptions)
             .Build(),
             [
                 "To you too!",
@@ -385,13 +375,13 @@ public static class QuestionsAndResponses
                 "It sure is!"
             ]
         ),
-        new MatcherAndResponses(
+            new MatcherAndResponses(
             new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
             .AddTokens(QueryLibrary.GoodeveningOptions)
             .AddSpaceOrPeriod()
-            .AddTokens(QueryLibrary.OriBotOptions)
+            .AddTokens(oriBotOptions)
             .Build(),
             [
                 "To you too!",
@@ -400,13 +390,13 @@ public static class QuestionsAndResponses
                 "It sure is!"
             ]
         ),
-        new MatcherAndResponses(
+            new MatcherAndResponses(
             new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
             .AddTokens(QueryLibrary.GoodnightOptions)
             .AddSpaceOrPeriod()
-            .AddTokens(QueryLibrary.OriBotOptions)
+            .AddTokens(oriBotOptions)
             .Build(),
             [
                 "Goodnight!",
@@ -417,15 +407,15 @@ public static class QuestionsAndResponses
                 "Sleep tight! " + Emotes.OriHeart.ToString()!,
             ]
         ),
-        #endregion
-        #region Goodbye ori
-        new MatcherAndResponses(
+            #endregion
+            #region Goodbye ori
+            new MatcherAndResponses(
             new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
             .AddTokens(QueryLibrary.Goodbyes)
             .AddSpaceOrPeriod()
-            .AddTokens(QueryLibrary.OriBotOptions)
+            .AddTokens(oriBotOptions)
             .Build(),
             [
                 "Bye! " + Emotes.OriHeart.ToString()!,
@@ -435,15 +425,15 @@ public static class QuestionsAndResponses
                 ":wave: Goodbye!"
             ]
         ),
-        #endregion
-        #region Asking the bot
-        new MatcherAndResponses(
+            #endregion
+            #region Asking the bot
+            new MatcherAndResponses(
             new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
             .AddTokens(QueryLibrary.AsktimepastOptions)
             .AddSpaceOrPeriod()
-            .AddTokens(QueryLibrary.OriBotOptions)
+            .AddTokens(oriBotOptions)
             .Build(),
             [
                 "It was good! " + Emotes.OriHype.ToString()!,
@@ -452,13 +442,13 @@ public static class QuestionsAndResponses
                 "Not bad at all!"
             ]
         ),
-        new MatcherAndResponses(
+            new MatcherAndResponses(
             new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
             .AddTokens(QueryLibrary.AsktimenowOptions)
             .AddSpaceOrPeriod()
-            .AddTokens(QueryLibrary.OriBotOptions)
+            .AddTokens(oriBotOptions)
             .Build(),
             [
                 "It's going great! " + Emotes.OriHype.ToString()!,
@@ -467,13 +457,13 @@ public static class QuestionsAndResponses
                 "It's pretty enjoyable. " + Emotes.OriHeart.ToString()!
             ]
         ),
-        new MatcherAndResponses(
+            new MatcherAndResponses(
             new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
             .AddTokens(QueryLibrary.AskStatusOptions)
             .AddSpaceOrPeriod()
-            .AddTokens(QueryLibrary.OriBotOptions)
+            .AddTokens(oriBotOptions)
             .Build(),
             [
                 "I'm doing good! Thanks for asking " + Emotes.OriHeart.ToString()!,
@@ -482,13 +472,13 @@ public static class QuestionsAndResponses
                 "I'm pretty happy."
             ]
         ),
-        new MatcherAndResponses(
+            new MatcherAndResponses(
             new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
             .AddTokens(QueryLibrary.AskStatusYNOptions)
             .AddSpaceOrPeriod()
-            .AddTokens(QueryLibrary.OriBotOptions)
+            .AddTokens(oriBotOptions)
             .Build(),
             [
                 "Yep! Thanks for asking " + Emotes.OriHeart.ToString()!,
@@ -496,13 +486,13 @@ public static class QuestionsAndResponses
                 "Yeah! " + Emotes.OriHype.ToString()!
             ]
         ),
-        new MatcherAndResponses(
+            new MatcherAndResponses(
             new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
             .AddTokens(QueryLibrary.AskActivityOptions)
             .AddSpaceOrPeriod()
-            .AddTokens(QueryLibrary.OriBotOptions)
+            .AddTokens(oriBotOptions)
             .Build(),
             [
                 "Oh, not much. Just relaxing!",
@@ -511,15 +501,15 @@ public static class QuestionsAndResponses
                 "Nothing but talking to you, I guess!"
             ]
         ),
-        #endregion
-        #region Asking about the bot (as comments)
-        new MatcherAndResponses(
+            #endregion
+            #region Asking about the bot (as comments)
+            new MatcherAndResponses(
             new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
             .AddTokens(QueryLibrary.TellActivityGoodOptions)
             .AddSpaceOrPeriod()
-            .AddTokens(QueryLibrary.OriBotOptions)
+            .AddTokens(oriBotOptions)
             .Build(),
             [
                 "Thanks! " + Emotes.OriHeart.ToString()!,
@@ -527,25 +517,25 @@ public static class QuestionsAndResponses
                 Emotes.OriHeart.ToString()!,
             ]
         ),
-        new MatcherAndResponses(
+            new MatcherAndResponses(
             new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
             .AddTokens(QueryLibrary.FavoritecolorOptions)
             .AddSpaceOrPeriod()
-            .AddTokens(QueryLibrary.OriBotOptions)
+            .AddTokens(oriBotOptions)
             .Build(),
             [
                 "Oh... I don't know! I like greens and blues, oranges and reds, all of them really! I like all of the colors you can find in Nibel. " + Emotes.OriHeart.ToString()!
             ]
         ),
-        new MatcherAndResponses(
+            new MatcherAndResponses(
             new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
             .AddTokens(QueryLibrary.LoveOptions)
             .AddSpaceOrPeriod()
-            .AddTokens(QueryLibrary.OriBotOptions)
+            .AddTokens(oriBotOptions)
             .Build(),
             [
                  Emotes.OriHeart.ToString()!,
@@ -553,17 +543,17 @@ public static class QuestionsAndResponses
                 "Oh! " + Emotes.OriHeart.ToString()!
             ]
         ),
-        #endregion
-        #region Asking about the developers (coming soon)
-        #endregion
-        #region Thanks
-        new MatcherAndResponses(
+            #endregion
+            #region Asking about the developers (coming soon)
+            #endregion
+            #region Thanks
+            new MatcherAndResponses(
             new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
             .AddTokens(QueryLibrary.ThanksOptions)
             .AddSpaceOrPeriod()
-            .AddTokens(QueryLibrary.OriBotOptions)
+            .AddTokens(oriBotOptions)
             .Build(),
             [
                 "Oh! You're welcome " + Emotes.OriHype.ToString()!,
@@ -573,15 +563,15 @@ public static class QuestionsAndResponses
                 "Anything for a friend " + Emotes.OriHeart.ToString()!
             ]
         ),
-        #endregion
-        #region Birthday
-        new MatcherAndResponses(
+            #endregion
+            #region Birthday
+            new MatcherAndResponses(
             new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
             .AddTokens(QueryLibrary.BirthdayOptions)
             .AddSpaceOrPeriod()
-            .AddTokens(QueryLibrary.OriBotOptions)
+            .AddTokens(oriBotOptions)
             .Build(),
             [
                  Emotes.OriHype.ToString()! + " :tada:",
@@ -590,13 +580,13 @@ public static class QuestionsAndResponses
             ],
             "birthday"
         ),
-        new MatcherAndResponses(
+            new MatcherAndResponses(
             new MatcherBuilder()
             .AddBeginningMarker()
             .AddAnyPunctuation()
             .AddTokens(QueryLibrary.BirthdayOptions)
             .AddSpaceOrPeriod()
-            .AddTokens(QueryLibrary.OriBotOptions)
+            .AddTokens(oriBotOptions)
             .Build(),
             [
                 "Today's not my birthday! It's on the 11th of March.",
@@ -604,88 +594,35 @@ public static class QuestionsAndResponses
             ],
             "notbirthday"
         ),
-        #endregion
-    ];
-}
+            #endregion
+        ];
 
+        string[] greetings = File.ReadAllLines(Utilities.GetLocalFilePath("Responses/Greetings.txt"));
 
-
-public class NewPassiveResponses
-{
-    private readonly IOptionsMonitor<NewPassiveResponsesOptions> _passiveResponsesOptions;
-    private readonly Globals _globals;
-    private readonly ILogger<NewPassiveResponses> _logger;
-
-
-    #region Configs
-
-    private static readonly Random RNG = new Random();
-
-    public bool RandomlyUseKuResponse => KuChance == 1 || RNG.NextDouble() >= 1.0 - KuChance;
-
-    /// <summary>
-    /// Whether or not this <see cref="PassiveHandler"/> is active.
-    /// </summary>
-    private bool IsSystemEnabled => _passiveResponsesOptions.CurrentValue.Enabled;
-
-    /// <summary>
-    /// Whether or not this handler can trigger in all channels or just #bot-commands
-    /// </summary>
-    private bool AllowInAnyChannel => _passiveResponsesOptions.CurrentValue.AllowInAnyChannel;
-
-    /// <summary>
-    /// The time that a user must wait before they can get another response from the bot.
-    /// </summary>
-    private int CooldownTimeMS => _passiveResponsesOptions.CurrentValue.CooldownTimeMS;
-
-    /// <summary>
-    /// Whether or not the cooldown system is enabled.
-    /// </summary>
-    private bool IsCooldownEnabled => _passiveResponsesOptions.CurrentValue.IsCooldownEnabled;
-
-    /// <summary>
-    /// The chance of Ku chiming in.
-    /// </summary>
-    private double KuChance => _passiveResponsesOptions.CurrentValue.KuChance;
-
-    /// <summary>
-    /// Force the system to believe it's march 11.
-    /// </summary>
-    private bool ForceBirthday => _passiveResponsesOptions.CurrentValue.ForceBirthday;
-
-    /// <summary>
-    /// A dictionary of user ID to epoch that represents when the user last used this handler.
-    /// </summary>
-    private static readonly Dictionary<ulong, long> MemberLastUsedEpoch = new Dictionary<ulong, long>();
-
-    #endregion
-
-    public NewPassiveResponses(IOptionsMonitor<NewPassiveResponsesOptions> passiveResponsesOptions, Globals globals, ILogger<NewPassiveResponses> logger)
-    {
-        _passiveResponsesOptions = passiveResponsesOptions;
-        _globals = globals;
-        _logger = logger;
+        return Task.CompletedTask;
     }
 
     public async Task Respond(string message, SocketCommandContext context)
     {
         message = message.Replace("{USERPING}", context.User.Mention);
         if (IsCooldownEnabled)
+            _memberLastUsedEpoch[context.User.Id] = DateTime.UtcNow.ToBinary();
+
+        Random rng = new Random();
+        if (rng.NextDouble() <= KuChance)
         {
-            MemberLastUsedEpoch[context.User.Id] = DateTime.UtcNow.ToBinary();
-        }
-        if (RandomlyUseKuResponse)
-        {
-            await context.Message.ReplyAsync(Emotes.OriKu + ": " + QueryLibrary.RandomKuResponse + $"\n\n{Emotes.OriFace}: " + message);
-            return; // Exit here.
+            string kuResponse;
+            if (rng.Next(100) == 0)
+                kuResponse = QueryLibrary.Kuresponsesrare[rng.Next(QueryLibrary.Kuresponsesrare.Length)];
+            else
+                kuResponse = QueryLibrary.KuResponses[rng.Next(QueryLibrary.KuResponses.Length)];
+            await context.Message.ReplyAsync($"{Emotes.OriKu}: {kuResponse}\n{Emotes.OriFace}: {message}");
         }
         else
         {
             await context.Message.ReplyAsync(message);
-            return; // Exit here.
         }
     }
-
     public async Task Run(SocketCommandContext context)
     {
         if (!IsSystemEnabled) // Abort if disabled
@@ -693,18 +630,20 @@ public class NewPassiveResponses
 
         var message = context.Message;
 
-        if (QuestionsAndResponses.askingAboutGender.MatchRandom(context.Message.Content, out string response))
+        if (QuestionsAndResponses.AskingAboutGender.MatchRandom(context.Message.Content, out string response))
         {
             await context.Message.ReplyAsync(response);
         }
 
-        if (!AllowInAnyChannel && message.Channel.Id != _globals.CommandsChannel.Id && !((SocketGuildUser)context.User).GuildPermissions.BanMembers) return;
+        if (!AllowInAnyChannel && message.Channel.Id != _globals.CommandsChannel.Id && !((SocketGuildUser)context.User).GuildPermissions.BanMembers)
+            return;
 
-        if (MemberLastUsedEpoch.TryGetValue(context.User.Id, out long value))
+        if (_memberLastUsedEpoch.TryGetValue(context.User.Id, out long value))
         {
             DateTime lastUsed = DateTime.FromBinary(value);
             TimeSpan latency = DateTime.UtcNow - lastUsed;
-            if (latency.TotalMilliseconds < CooldownTimeMS) return;
+            if (latency.TotalMilliseconds < CooldownTimeMS)
+                return;
         }
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
@@ -717,15 +656,11 @@ public class NewPassiveResponses
                 {
                     case "birthday":
                         if (isbirthday)
-                        {
                             await Respond(response2, context);
-                        }
                         break;
                     case "notbirthday":
                         if (!isbirthday)
-                        {
                             await Respond(response2, context);
-                        }
                         break;
                     default:
                         await Respond(response2, context);

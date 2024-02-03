@@ -6,11 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OriBot.Utility;
-using System.Net.Sockets;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-using static OriBot.Utility.PassiveResponseMatching;
 
 namespace OriBot.Services;
 
@@ -35,9 +32,7 @@ public partial class MessageHandler : DiscordClientService
 
     public MessageHandler(DiscordSocketClient client, ILogger<DiscordClientService> logger, IServiceProvider provider, CommandService commandService,
          ExceptionReporter exceptionReporter, VolatileData volatileData, Globals globals, MessageUtilities messageUtilities,
-         IDbContextFactory<SpiritContext> dbContextFactory, IOptions<BotOptions> options
-        ,NewPassiveResponses newPassiveResponses
-        )
+         IDbContextFactory<SpiritContext> dbContextFactory, IOptions<BotOptions> options, NewPassiveResponses newPassiveResponses)
         : base(client, logger)
     {
         _provider = provider;
@@ -227,15 +222,15 @@ public partial class MessageHandler : DiscordClientService
                 {
                     await _commandService.ExecuteAsync(context, argPos, _provider);
                 }
-                // check for responses and that in the commands channel
-                else if (context.Channel.Id == _globals.CommandsChannel.Id)
-                {
-                    await CommandsChannelMessage(context);
-                }
                 // any mod mention
                 else if (message.Content.StartsWith(_globals.AnyModRole.Mention))
                 {
                     await AnyModPingHandler(context);
+                }
+                // check for responses and that in the commands channel
+                else
+                {
+                    await _newPassiveResponses.Run(context);
                 }
             }
 
@@ -275,18 +270,6 @@ public partial class MessageHandler : DiscordClientService
             }
         }
         return true;
-    }
-    private async Task CommandsChannelMessage(SocketCommandContext context)
-    {
-        if (context.Message.Content.StartsWith('/'))
-        {
-            await context.Message.ReplyAsync("oh! to use slash commands make sure to click on the option!");
-        }
-        else
-        {
-            await _newPassiveResponses.Run(context);
-            //await _passiveResponses.ExecuteHandlerAsync(context);
-        }
     }
     /********************************************
         HELPER METHODS

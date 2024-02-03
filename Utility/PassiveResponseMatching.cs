@@ -9,7 +9,8 @@ public static class RegexGenerators
 
     public static string MultichoiceOR(params string[] strings)
     {
-        var stringBuilder = new StringBuilder('(');
+        var stringBuilder = new StringBuilder();
+        stringBuilder.Append('(');
         foreach (string s in strings)
             stringBuilder.Append(s).Append('|');
 
@@ -126,7 +127,7 @@ public class MatcherBuilder
     {
         _stringBuilder.Append('(');
         foreach (string token in tokens)
-            _stringBuilder.Append(token);
+            _stringBuilder.Append(token).Append("|");
 
         _stringBuilder[^1] = ')';
         return this;
