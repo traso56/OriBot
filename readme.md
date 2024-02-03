@@ -37,6 +37,8 @@
 - Use Allman style.
 - Line breaks should occur before binary operators, if necessary.
 - Don't use braces if a single statement will do. If one brach of the if statement requires braces then use braces in all branches
+- prefer `""` over `string.Empty`
+- Use regular constructors over primary constructors
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 
