@@ -252,8 +252,8 @@ public partial class MessageHandler : DiscordClientService
             string[] allowedSites = File.ReadAllLines(Utilities.GetLocalFilePath("AllowedSites.txt"));
             if (!Array.Exists(allowedSites, context.Message.Content.Contains))
             {
-                string errorMessage = $"Hello there!, the message you sent in <#{context.Channel.Id}> does not contain a valid message that I recognize as art\n" +
-                    $"if you think this is an error or want to suggest more sites to accept feel free to send a /ticket in {context.Guild.Name}";
+                string errorMessage = $"Hello there! The message you sent in <#{context.Channel.Id}> does not contain a valid message that I recognize as art\n" +
+                    $"If you think this is an error or want to suggest more sites to accept feel free to create a ticket in {context.Guild.Name}";
                 await MessageDeleterHandlerAsync(context, errorMessage);
                 return false;
             }
@@ -263,9 +263,9 @@ public partial class MessageHandler : DiscordClientService
             var attachment = context.Message.Attachments.First(); // we really only have to check the first because all other situations would be valid anyways
             if (attachment.Width < 40 || attachment.Height < 40)
             {
-                string errorMessage = $"Hello there!, the message you sent in <#{context.Channel.Id}> does not contain a valid message that I recognize as art\n" +
+                string errorMessage = $"Hello there! The message you sent in <#{context.Channel.Id}> does not contain a valid message that I recognize as art\n" +
                     $"The image sent is too small\n" +
-                    $"if you think this is an error feel free to send a /ticket in {context.Guild.Name}";
+                    $"If you think this is an error feel free to create a ticket in {context.Guild.Name}";
                 await MessageDeleterHandlerAsync(context, errorMessage);
                 return false;
             }
