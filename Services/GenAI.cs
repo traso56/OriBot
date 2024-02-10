@@ -30,6 +30,8 @@ namespace OriBot.Services
                 [JsonProperty("text")]
                 public string Text { get; set; }
             }
+
+            [JsonConverter(typeof(StringEnumConverter))]
             public enum HarmCategory
             {
                 [JsonConverter(typeof(StringEnumConverter))]
@@ -69,7 +71,7 @@ namespace OriBot.Services
         public class Query
         {
 
-
+            [JsonConverter(typeof(StringEnumConverter))]
             public enum HarmBlockThreshold
             {
                 [JsonConverter(typeof(StringEnumConverter))]
@@ -226,7 +228,7 @@ namespace OriBot.Services
         }
         public class Responses
         {
-
+            [JsonConverter(typeof(StringEnumConverter))]
             public enum HarmProbability
             {
                 [JsonConverter(typeof(StringEnumConverter))]
@@ -277,10 +279,10 @@ namespace OriBot.Services
             public class SafetyRating
             {
                 [JsonProperty("category")]
-                public string Category { get; set; }
+                public HarmCategory Category { get; set; }
 
                 [JsonProperty("probability")]
-                public string Probability { get; set; }
+                public HarmProbability Probability { get; set; }
             }
 
             public class PromptFeedback

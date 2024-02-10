@@ -629,7 +629,10 @@ public class NewPassiveResponses : BackgroundService
             return;
 
         var message = context.Message;
-
+        if (message.Content.Length < 1)
+        {
+            return;
+        }
         if (QuestionsAndResponses.AskingAboutGender.MatchRandom(context.Message.Content, out string response))
         {
             await context.Message.ReplyAsync(response);
@@ -645,7 +648,7 @@ public class NewPassiveResponses : BackgroundService
             if (latency.TotalMilliseconds < CooldownTimeMS)
                 return;
         }
-
+        
         DateTimeOffset now = DateTimeOffset.UtcNow;
         var isbirthday = (now.Month == 3 && now.Day == 11) || ForceBirthday;
         foreach (var item in QuestionsAndResponses.QnA)
