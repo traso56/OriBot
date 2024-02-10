@@ -28,6 +28,7 @@ internal static class Program
             .AddJsonFile("PassiveResponsesOptions.json", optional: false, reloadOnChange: true)
             .AddJsonFile("MessageAmountQuerying.json", optional: false, reloadOnChange: true)
             //.AddJsonFile("RuntimeCompilationOptions.json", optional: false, reloadOnChange: true)
+            .AddJsonFile("GenerativeAIOptions.json", optional: false, reloadOnChange: true)
             .Build();
 
         Log.Logger = new LoggerConfiguration()
@@ -87,6 +88,7 @@ internal static class Program
                         .Configure<NewPassiveResponsesOptions>(configuration)
                         .Configure<MessageAmountQuerying>(configuration)
                         //.Configure<RuntimeCompileOptions>(configuration)
+                        .Configure<GenerativeAIOptions>(configuration)
                         .AddDbContextFactory<SpiritContext>(options => options.UseSqlite($"Data Source={Path.Combine(AppContext.BaseDirectory, "Files", "database.db")}").EnableThreadSafetyChecks(true))
                         .AddHttpClient()
                         // managers
@@ -95,6 +97,7 @@ internal static class Program
                         .AddHostedService<BackgroundTasks>()
                         .AddHostedService<Services.EventHandler>()
                         // singletons
+                        .AddSingleton<GenAI>()
                         .AddSingleton<Globals>()
                         .AddHostedService<HostedServiceStarter<Globals>>()
                         .AddSingleton<NewPassiveResponses>()

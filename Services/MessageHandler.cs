@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using OriBot.Utility;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace OriBot.Services;
 

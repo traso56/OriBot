@@ -12,6 +12,8 @@ public class Testing : InteractionModuleBase<SocketInteractionContext>
 {
     public required Globals Globals { get; set; }
 
+    public required GenAI GenAIService { get; set; }
+
     [ModCommand]
     [SlashCommand("throw", "throws")]
     public async Task Throw(bool withResponse)
@@ -19,5 +21,16 @@ public class Testing : InteractionModuleBase<SocketInteractionContext>
         if (withResponse)
             await RespondAsync("response");
         throw new InvalidOperationException("test exception");
+    }
+
+    [ModCommand]
+    [SlashCommand("ai", "Tests Gen AI")]
+    public async Task AI(string query)
+    {
+        var response = await GenAIService.QueryAsync(
+            new GenAI.Query.RootBuilder()
+            .Build()
+        );
+        await RespondAsync(response.Candidates.First().Content.Parts.First().Text);
     }
 }

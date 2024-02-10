@@ -86,3 +86,8 @@ public class RuntimeCompileOptions
     public required string CompiledPath { get; set; }
     public required string DotnetBinPath { get; set; }
 }
+
+public class GenerativeAIOptions
+{
+    public required string ApiKey { get; set; }
+}
