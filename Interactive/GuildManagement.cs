@@ -13,6 +13,8 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
 {
     public required IDbContextFactory<SpiritContext> DbContextFactory { get; set; }
     public required IOptionsMonitor<UserJoinOptions> UserJoinOptions { get; set; }
+
+    public required Discord.Interactions.InteractionService InteractionService { get; set; }
     public required Globals Globals { get; set; }
     public required MessageUtilities MessageUtilities { get; set; }
     public required VolatileData VolatileData { get; set; }
@@ -24,6 +26,13 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
         IEmote pinEmote = new Emoji("📌");
         await message.AddReactionAsync(pinEmote);
         await RespondAsync("added pin emote", ephemeral: true);
+    }
+
+    [MessageCommand("register2")]
+    public async Task Register2(IMessage message)
+    {
+        await InteractionService.RegisterCommandsToGuildAsync(Globals.MainGuild.Id);
+        await ReplyAsync("Registered");
     }
     /********************************************
         BADGES

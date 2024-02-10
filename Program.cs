@@ -29,6 +29,7 @@ internal static class Program
             .AddJsonFile("MessageAmountQuerying.json", optional: false, reloadOnChange: true)
             //.AddJsonFile("RuntimeCompilationOptions.json", optional: false, reloadOnChange: true)
             .AddJsonFile("GenerativeAIOptions.json", optional: false, reloadOnChange: true)
+            
             .Build();
 
         Log.Logger = new LoggerConfiguration()

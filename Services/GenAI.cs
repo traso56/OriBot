@@ -16,8 +16,13 @@ using static OriBot.Services.GenAI.Query;
 
 namespace OriBot.Services
 {
-    public class GenAI(IHttpClientFactory httpClientFactory)
+    public class GenAI
     {
+        public class QnA
+        {
+            public string input { get; set; }
+            public string output { get; set; }
+        }
         public class General
         {
             public class Part
@@ -145,6 +150,16 @@ namespace OriBot.Services
 
                     content.Parts.Add(new Part { Text = $"input: {input}" });
                     content.Parts.Add(new Part { Text = $"output: {output}" });
+                    return this;
+                }
+
+                public ContentBuilder AddQnA(params QnA[] input)
+                {
+
+                    foreach (var item in input)
+                    {
+                        AddPair(item.input, item.output);    
+                    }
                     return this;
                 }
 
@@ -294,8 +309,14 @@ namespace OriBot.Services
 
 
 
-        private readonly IHttpClientFactory clientFactory = httpClientFactory;
+        private readonly IHttpClientFactory clientFactory;
         private readonly IOptionsMonitor<GenerativeAIOptions> options;
+
+        public GenAI(IOptionsMonitor<GenerativeAIOptions> options2, IHttpClientFactory httpClientFactory)
+        {
+            clientFactory = httpClientFactory;
+            options = options2;
+        }
 
         public async Task<Responses.Response> QueryAsync(Root query)
         {
@@ -303,9 +324,13 @@ namespace OriBot.Services
             
             using (var client = clientFactory.CreateClient())
             {
-                var content = new StringContent(query.BuildToString());
-                var response = await client.PostAsync($"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={options.CurrentValue.ApiKey}", content);
-                return Responses.ParseResponse(await response.Content.ReadAsStringAsync());
+                var built = query.BuildToString();
+                var content = new StringContent(built);
+                content.Headers.Remove("Content-Type");
+                content.Headers.Add("Content-Type", "application /json");
+               HttpResponseMessage? response = await client.PostAsync($"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={options.CurrentValue.ApiKey}", content);
+                var rescontent = await response.Content.ReadAsStringAsync();
+                return Responses.ParseResponse(rescontent);
             }
         }
 

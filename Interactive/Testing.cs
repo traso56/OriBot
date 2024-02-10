@@ -1,9 +1,17 @@
-﻿using Discord;
+﻿using System.Globalization;
+using System.Net;
+using System.Xml.Linq;
+
+using CsvHelper.Configuration;
+
+using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using OriBot.Services;
 using OriBot.Utility;
+
+using static OriBot.Services.GenAI.Query;
 
 namespace OriBot.Interactive;
 
@@ -22,15 +30,46 @@ public class Testing : InteractionModuleBase<SocketInteractionContext>
             await RespondAsync("response");
         throw new InvalidOperationException("test exception");
     }
-
-    [ModCommand]
+    
     [SlashCommand("ai", "Tests Gen AI")]
     public async Task AI(string query)
     {
+        await DeferAsync();
+        List<GenAI.QnA> res2 = [];
+        var csvconfig = new CsvConfiguration(CultureInfo.InvariantCulture) { 
+            
+        };
+        using (var csv = new StreamReader(Path.Combine(AppContext.BaseDirectory, "Files", "training.csv")))
+        using (var csvReader = new CsvHelper.CsvReader(csv, CultureInfo.InvariantCulture))
+        {
+            csvReader.Read();
+            
+            csvReader.ReadHeader();
+            var records = csvReader.GetRecords<GenAI.QnA>();
+            foreach (var record in records)
+            {
+                res2.Add(record);
+                record.input = WebUtility.HtmlDecode(record.input);
+                record.output = WebUtility.HtmlDecode(record.output);
+
+            }
+        }
         var response = await GenAIService.QueryAsync(
-            new GenAI.Query.RootBuilder()
+            new RootBuilder()
+            .AddContent(
+                    new ContentBuilder()
+                    .AddQnA([..res2])
+                    .AddPair(query,"")
+                    .Build()
+                )
             .Build()
         );
-        await RespondAsync(response.Candidates.First().Content.Parts.First().Text);
+        var res = response.Candidates.First();
+        if (res.Content == null)
+        {
+            await FollowupAsync($"Whoops cannot answer this question due to: {res.FinishReason} reasons.");
+            return;
+        }
+        await FollowupAsync(res.Content.Parts.First().Text);
     }
 }
