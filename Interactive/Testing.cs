@@ -22,6 +22,8 @@ public class Testing : InteractionModuleBase<SocketInteractionContext>
 
     public required GenAI GenAIService { get; set; }
 
+    public required GenAIAgentLibrary GenAILibrary { get; set; }
+
     [ModCommand]
     [SlashCommand("throw", "throws")]
     public async Task Throw(bool withResponse)
@@ -54,15 +56,9 @@ public class Testing : InteractionModuleBase<SocketInteractionContext>
 
             }
         }
+        var req = GenAILibrary.GetTunedForPassiveResponseCheckingAndResponse(query, out string trueguid, out string falseguid);
         var response = await GenAIService.QueryAsync(
-            new RootBuilder()
-            .AddContent(
-                    new ContentBuilder()
-                    .AddQnA([..res2])
-                    .AddPair(query,"")
-                    .Build()
-                )
-            .Build()
+            req
         );
         var res = response.Candidates.First();
         if (res.Content == null)

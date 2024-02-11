@@ -78,7 +78,7 @@ namespace OriBot.Services
             return BaseModel.Modify(x =>
             {
                 var content = new ContentBuilder(x.Contents.First())
-                    .AddPair($"Is the user in the next message mentioning you by saying your name or using the @ mention?, if yes respond with: \"{trueguid2}\", if not respond with: \"{falseguid2}\". Just so you know, your user mention is <@1197071082939752468>: {query}", "")
+                    .AddPair($"Is the user in the following message mentioning you by saying your name or using the @ mention?, if yes respond with: \"{trueguid2}\", if not respond with: \"{falseguid2}\". Just so you know, your mention is <@1197071082939752468>: {query}", "")
                     
                     .Build();
                 x.Contents[0] = content;
@@ -95,7 +95,7 @@ namespace OriBot.Services
             return BaseModel.Modify(x =>
             {
                 var content = new ContentBuilder(x.Contents.First())
-                    .AddPair($"Is the user in the next message mentioning you by saying your name or using the @ mention?, if yes respond like this: \"{trueguid2},your response\", if not respond like this: \"{falseguid2},NORESPONSE\". Just so you know, your user mention is <@1197071082939752468>: {query}", "")
+                    .AddPair($"Is the user in the following message mentioning you by saying your name or using the @ mention?, if yes respond like this: \"{trueguid2},your response\", if not respond like this: \"{falseguid2},NORESPONSE\". Just so you know, your mention is <@1197071082939752468>: {query}", "")
 
                     .Build();
                 x.Contents[0] = content;
