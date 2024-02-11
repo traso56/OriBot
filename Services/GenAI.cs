@@ -1,34 +1,155 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Json;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Globalization;
+using System.Net;
 
 using Microsoft.Extensions.Options;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
+using OriBot.Utility;
+
 using static OriBot.Services.GenAI;
 using static OriBot.Services.GenAI.General;
 using static OriBot.Services.GenAI.Query;
+using static OriBot.Services.GenAI.Responses;
 
 namespace OriBot.Services
 {
+    
+    public class GenAIAgentLibrary
+    {
+        private readonly GenAI aiService;
+
+        private readonly List<QnA> _baseKnowledge = [];
+
+        private readonly List<QnA> _baseKnowledgeRaw = [];
+
+        private string[] oriBotOptions = File.ReadAllLines(Utilities.GetLocalFilePath("Responses/oriBotOptions.txt"));
+
+       
+
+        public void Retemplate()
+        {
+            _baseKnowledge.Clear();
+            var oribirthday = new DateTime(DateTime.UtcNow.Year, 3, 11);
+            foreach (var record in _baseKnowledgeRaw)
+            {
+
+                record.input = WebUtility.HtmlDecode(
+                    record.input.Replace("{ORI}", "ori")
+                    .Replace("{TODAY}", $"{DateTime.UtcNow.Day}-{Utilities.GetMonthName(DateTime.UtcNow.Month)}-{DateTime.UtcNow.Year}")
+                    .Replace("{BIRTHDATE}", "11-Mar-2019")
+                    );
+
+                    record.output = WebUtility.HtmlDecode(record.output)
+                    .Replace("{TODAY}", $"{DateTime.UtcNow.Day}-{Utilities.GetMonthName(DateTime.UtcNow.Month)}-{DateTime.UtcNow.Year}")
+                    .Replace("{BIRTHDATE}", "11-Mar-2019")
+                    .Replace("{BIRTHDAYDAYS}", $"{Utilities.DaysUntilBirthday(oribirthday)}");
+                _baseKnowledge.Add(record);
+
+            }
+        }
+
+        public RootBuilder BaseModel => 
+            new RootBuilder()
+            .AddContent(
+                    new ContentBuilder()
+                    .AddQnA([.. _baseKnowledge])
+                    .Build()
+                );
+
+        public Root GetTunedForPassiveResponse(string query) {
+            return BaseModel.Modify(x =>
+            {
+                var content = new ContentBuilder(x.Contents.First())
+                    .AddPair(query, "")
+                    .Build();
+                x.Contents[0] = content;
+                return x;
+            }).Build();
+        }
+
+        public Root GetTunedForPassiveResponseChecking(string query,out string trueguid, out string falseguid)
+        {
+            var trueguid2 = Guid.NewGuid().ToString();
+            trueguid = trueguid2;
+            var falseguid2 = Guid.NewGuid().ToString();
+            falseguid = falseguid2;
+            return BaseModel.Modify(x =>
+            {
+                var content = new ContentBuilder(x.Contents.First())
+                    .AddPair($"Is the user in the next message mentioning you by saying your name or using the @ mention?, if yes respond with: \"{trueguid2}\", if not respond with: \"{falseguid2}\". Just so you know, your user mention is <@1197071082939752468>: {query}", "")
+                    
+                    .Build();
+                x.Contents[0] = content;
+                return x;
+            }).Build();
+        }
+
+        public Root GetTunedForPassiveResponseCheckingAndResponse(string query, out string trueguid, out string falseguid)
+        {
+            var trueguid2 = Guid.NewGuid().ToString();
+            trueguid = trueguid2;
+            var falseguid2 = Guid.NewGuid().ToString();
+            falseguid = falseguid2;
+            return BaseModel.Modify(x =>
+            {
+                var content = new ContentBuilder(x.Contents.First())
+                    .AddPair($"Is the user in the next message mentioning you by saying your name or using the @ mention?, if yes respond like this: \"{trueguid2},your response\", if not respond like this: \"{falseguid2},NORESPONSE\". Just so you know, your user mention is <@1197071082939752468>: {query}", "")
+
+                    .Build();
+                x.Contents[0] = content;
+                return x;
+            }).Build();
+        }
+
+
+
+
+        public GenAIAgentLibrary(GenAI ai)
+        {
+            aiService = ai;
+            using (var csv = new StreamReader(Path.Combine(AppContext.BaseDirectory, "Files", "training.csv")))
+            using (var csvReader = new CsvHelper.CsvReader(csv, CultureInfo.InvariantCulture))
+            {
+                csvReader.Read();
+
+                csvReader.ReadHeader();
+                var records = csvReader.GetRecords<GenAI.QnA>();
+                foreach (var record in records)
+                {
+
+                    record.input = record.input;
+
+                    record.output = record.output;
+                    _baseKnowledgeRaw.Add(record);
+
+                }
+                Retemplate();
+            }
+
+        }
+    }
+
     public class GenAI
     {
+
+        public static class Constants
+        {
+            public const string DISCARD_RESPONSE = "{c5dc92df-f8e9-4a25-bbe7-7ece17e73e88}";
+        }
+
         public class QnA
         {
-            public string input { get; set; }
-            public string output { get; set; }
+            public required string input { get; set; }
+            public required string output { get; set; }
         }
         public class General
         {
             public class Part
             {
                 [JsonProperty("text")]
-                public string Text { get; set; }
+                public required string Text { get; set; }
             }
 
             [JsonConverter(typeof(StringEnumConverter))]
@@ -61,10 +182,10 @@ namespace OriBot.Services
             public class Content
             {
                 [JsonProperty("parts")]
-                public List<Part> Parts { get; set; }
+                public required List<Part> Parts { get; set; }
 
                 [JsonProperty("role")]
-                public string Role { get; set; }
+                public required string Role { get; set; }
             }
         }
 
@@ -103,7 +224,7 @@ namespace OriBot.Services
                 public int MaxOutputTokens { get; set; }
 
                 [JsonProperty("stopSequences")]
-                public List<string> StopSequences { get; set; }
+                public required List<string> StopSequences { get; set; }
             }
 
             public class SafetySetting
@@ -118,13 +239,13 @@ namespace OriBot.Services
             public class Root
             {
                 [JsonProperty("contents")]
-                public List<Content> Contents { get; set; }
+                public required List<Content> Contents { get; set; }
 
                 [JsonProperty("generationConfig")]
-                public GenerationConfig GenerationConfig { get; set; }
+                public required GenerationConfig GenerationConfig { get; set; }
 
                 [JsonProperty("safetySettings")]
-                public List<SafetySetting> SafetySettings { get; set; }
+                public required List<SafetySetting> SafetySettings { get; set; }
 
                 public string BuildToString()
                 {
@@ -134,21 +255,35 @@ namespace OriBot.Services
 
             public class ContentBuilder
             {
-                private readonly Content content = new Content();
+                private Content content = new Content()
+                {
+                    Parts = [],
+                    Role = ""
+                };
+
+                public ContentBuilder() {
+                    
+                }
+
+                public ContentBuilder(Content content2)
+                {
+                    content = content2;
+                }
+
+                public ContentBuilder Modify(Func<Content, Content> modify)
+                {
+                    content = modify(content);
+                    return this;
+                }
 
                 public ContentBuilder AddPart(string text)
                 {
-                    if (content.Parts == null)
-                        content.Parts = new List<Part>();
-
                     content.Parts.Add(new Part { Text = text });
                     return this;
                 }
 
                 public ContentBuilder AddPair(string input, string output)
                 {
-                    if (content.Parts == null)
-                        content.Parts = new List<Part>();
 
                     content.Parts.Add(new Part { Text = $"input: {input}" });
                     content.Parts.Add(new Part { Text = $"output: {output}" });
@@ -173,8 +308,9 @@ namespace OriBot.Services
 
             public class RootBuilder
             {
-                private readonly Root root = new Root()
+                private Root root = new Root()
                 {
+                    Contents = [],
                     GenerationConfig = new GenerationConfig()
                     {
                         Temperature = 0.9f,
@@ -191,10 +327,24 @@ namespace OriBot.Services
                     ]
                 };
 
+                public RootBuilder()
+                {
+                   
+                }
+
+                public RootBuilder(Root root2)
+                {
+                    root = root2;
+                }
+
+                public RootBuilder Modify(Func<Root,Root> modify)
+                {
+                    root = modify(root);
+                    return this;
+                }
+
                 public RootBuilder AddContent(Content content)
                 {
-                    if (root.Contents == null)
-                        root.Contents = new List<Content>();
 
                     root.Contents.Add(content);
                     return this;
@@ -208,8 +358,6 @@ namespace OriBot.Services
 
                 public RootBuilder AddSafetySetting(SafetySetting safetySetting)
                 {
-                    if (root.SafetySettings == null)
-                        root.SafetySettings = new List<SafetySetting>();
 
                     root.SafetySettings.Add(safetySetting);
                     return this;
@@ -249,13 +397,13 @@ namespace OriBot.Services
                 public Content Content { get; set; }
 
                 [JsonProperty("finishReason")]
-                public string FinishReason { get; set; }
+                public required string FinishReason { get; set; }
 
                 [JsonProperty("index")]
                 public int Index { get; set; }
 
                 [JsonProperty("safetyRatings")]
-                public List<SafetyRating> SafetyRatings { get; set; }
+                public required List<SafetyRating> SafetyRatings { get; set; }
             }
 
             public class Response
@@ -264,16 +412,25 @@ namespace OriBot.Services
                 public List<Candidate> Candidates { get; set; }
 
                 [JsonProperty("promptFeedback")]
-                public PromptFeedback PromptFeedback { get; set; }
-            }
+                public required PromptFeedback PromptFeedback { get; set; }
 
-            public class Content
-            {
-                [JsonProperty("parts")]
-                public List<Part> Parts { get; set; }
-
-                [JsonProperty("role")]
-                public string Role { get; set; }
+                public bool TryGetTextResult(out string? result,out string? stopReason)
+                {
+                    if (Candidates == null || Candidates.Count < 1)
+                    {
+                        stopReason = null;
+                        result = null;
+                        return false;
+                    }
+                    var res = Candidates.First();
+                    if (res.Content == null)
+                    {
+                        stopReason = res.FinishReason; result = null; return false;
+                    }
+                    result = res.Content.Parts.First().Text;
+                    stopReason = res.FinishReason;
+                    return true;
+                }
             }
 
             public class SafetyRating
@@ -288,22 +445,22 @@ namespace OriBot.Services
             public class PromptFeedback
             {
                 [JsonProperty("safetyRatings")]
-                public List<SafetyRating> SafetyRatings { get; set; }
+                public required List<SafetyRating> SafetyRatings { get; set; }
             }
 
             // Parser methods for deserializing JSON data
 
-            public static Candidate ParseCandidate(string json)
+            public static Candidate? ParseCandidate(string json)
             {
                 return JsonConvert.DeserializeObject<Candidate>(json);
             }
 
-            public static Response ParseResponse(string json)
+            public static Response? ParseResponse(string json)
             {
                 return JsonConvert.DeserializeObject<Response>(json);
             }
 
-            public static PromptFeedback ParsePromptFeedback(string json)
+            public static PromptFeedback? ParsePromptFeedback(string json)
             {
                 return JsonConvert.DeserializeObject<PromptFeedback>(json);
             }
@@ -332,7 +489,7 @@ namespace OriBot.Services
                 content.Headers.Add("Content-Type", "application /json");
                HttpResponseMessage? response = await client.PostAsync($"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={options.CurrentValue.ApiKey}", content);
                 var rescontent = await response.Content.ReadAsStringAsync();
-                return Responses.ParseResponse(rescontent);
+                return Responses.ParseResponse(rescontent)!;
             }
         }
 
@@ -343,7 +500,7 @@ namespace OriBot.Services
                 var content = new StringContent(query);
                 client.DefaultRequestHeaders.Add("Content-Type", "application/json");
                 var response = await client.PostAsync($"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={options.CurrentValue.ApiKey}", content);
-                return Responses.ParseResponse(await response.Content.ReadAsStringAsync());
+                return Responses.ParseResponse(await response.Content.ReadAsStringAsync())!;
             }
         }
     }

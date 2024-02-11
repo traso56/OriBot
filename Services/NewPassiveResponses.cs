@@ -9,6 +9,7 @@ namespace OriBot.Services;
 
 public static class QueryLibrary
 {
+    public static readonly string[] oriBotOptions = File.ReadAllLines(Utilities.GetLocalFilePath("Responses/oriBotOptions.txt"));
     public static readonly string[] Goodbyes = new string[]
     {
         "bye",
@@ -52,18 +53,31 @@ public static class QueryLibrary
     };
     public static readonly string[] GoodmorningOptions = new string[]
     {
-        "morning", "good morning", "gmorning", "mornin", "good mornin"
+        "morning",
+        "good morning", 
+        "gmorning", 
+        "mornin", 
+        "good mornin"
     };
     public static readonly string[] GoodafternoonOptions = new string[]
     {
-        "good afternoon to you", "good afternoon to ya", "good afternoon to ye", "good afternoon to u",
-        "gafternoon to you", "gafternoon to ya", "gafternoon to ye", "gafternoon to u",
+        "good afternoon to you",
+        "good afternoon to ya",
+        "good afternoon to ye",
+        "good afternoon to u",
+        "gafternoon to you", 
+        "gafternoon to ya", 
+        "gafternoon to ye", 
+        "gafternoon to u",
         "afternoon to you", "afternoon to ya", "afternoon to ye", "afternoon to u",
         "afternoon", "good afternoon", "after noon", "good after noon", "gafternoon"
     };
     public static readonly string[] GoodeveningOptions = new string[]
     {
-        "good evening to you", "good evening to ya", "good evening to ye", "good evening to u",
+        "good evening to you", 
+        "good evening to ya", 
+        "good evening to ye", 
+        "good evening to u",
         "gevening to you", "gevening to ya", "gevening to ye", "gevening to u",
         "evening to you", "evening to ya", "evening to ye", "evening to u",
         "evening", "good evening", "gevening"
@@ -222,6 +236,10 @@ public static class QuestionsAndResponses
             ]
         );
 
+    public static Matcher HasOriKeyword { get; set; } = new MatcherBuilder()
+            .AddCustom($"\\b{RegexGenerators.MultichoiceOR(QueryLibrary.oriBotOptions)}\\b")
+            .Build();
+
     public static IMatcherAndResponses[] QnA;
 }
 
@@ -229,6 +247,9 @@ public class NewPassiveResponses : BackgroundService
 {
     private readonly IOptionsMonitor<NewPassiveResponsesOptions> _passiveResponsesOptions;
     private readonly Globals _globals;
+    private readonly GenAI aiService;
+    private readonly GenAIAgentLibrary genAIAgentLibrary;
+    
 
     /// <summary>
     /// Whether or not this <see cref="PassiveHandler"/> is active.
@@ -259,10 +280,12 @@ public class NewPassiveResponses : BackgroundService
     /// </summary>
     private static readonly Dictionary<ulong, long> _memberLastUsedEpoch = new Dictionary<ulong, long>();
 
-    public NewPassiveResponses(IOptionsMonitor<NewPassiveResponsesOptions> passiveResponsesOptions, Globals globals)
+    public NewPassiveResponses(IOptionsMonitor<NewPassiveResponsesOptions> passiveResponsesOptions, Globals globals, GenAI genAI, GenAIAgentLibrary genAIAgentLibrary)
     {
         _passiveResponsesOptions = passiveResponsesOptions;
         _globals = globals;
+        this.aiService = genAI;
+        this.genAIAgentLibrary = genAIAgentLibrary;
     }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -320,6 +343,7 @@ public class NewPassiveResponses : BackgroundService
         };
 
         QuestionsAndResponses.QnA = [
+         
             #region Hi to ori
         new MatcherAndResponses(
             new MatcherBuilder()
@@ -538,7 +562,7 @@ public class NewPassiveResponses : BackgroundService
             .AddTokens(oriBotOptions)
             .Build(),
             [
-                 Emotes.OriHeart.ToString()!,
+                Emotes.OriHeart.ToString()!,
                 "Aw, thanks {USERPING}! " + Emotes.OriHype.ToString()!,
                 "Oh! " + Emotes.OriHeart.ToString()!
             ]
@@ -636,6 +660,7 @@ public class NewPassiveResponses : BackgroundService
         if (QuestionsAndResponses.AskingAboutGender.MatchRandom(context.Message.Content, out string response))
         {
             await context.Message.ReplyAsync(response);
+            return;
         }
 
         if (!AllowInAnyChannel && message.Channel.Id != _globals.CommandsChannel.Id && !((SocketGuildUser)context.User).GuildPermissions.BanMembers)
@@ -651,6 +676,23 @@ public class NewPassiveResponses : BackgroundService
         
         DateTimeOffset now = DateTimeOffset.UtcNow;
         var isbirthday = (now.Month == 3 && now.Day == 11) || ForceBirthday;
+        if (!QuestionsAndResponses.HasOriKeyword.Match(context.Message.Content))
+        {
+            return;
+        }
+        genAIAgentLibrary.Retemplate();
+        var replaced = QuestionsAndResponses.HasOriKeyword.Replace(context.Message.Content,"ori");
+        var check = genAIAgentLibrary.GetTunedForPassiveResponseCheckingAndResponse(replaced, out string trueguid, out string falseguid);
+        var query = await aiService.QueryAsync(check);
+
+        if (query.TryGetTextResult(out string? result2, out string? stopReason))
+        {
+            if (result2.StartsWith(trueguid) && !result2.Contains(GenAI.Constants.DISCARD_RESPONSE))
+            {
+                await Respond(result2.Replace(trueguid + ",",""), context);
+            }
+        }
+        return;
         foreach (var item in QuestionsAndResponses.QnA)
         {
             if (item.MatchRandom(context.Message.Content, out string response2))

@@ -28,14 +28,18 @@ public partial class MessageHandler : DiscordClientService
     private readonly MessageUtilities _messageUtilities;
     private readonly IDbContextFactory<SpiritContext> _dbContextFactory;
     private readonly BotOptions _botOptions;
+    private readonly GenAI aiService;
+    private readonly GenAIAgentLibrary genAIAgentLibrary;
 
     private readonly NewPassiveResponses _newPassiveResponses;
 
     public MessageHandler(DiscordSocketClient client, ILogger<DiscordClientService> logger, IServiceProvider provider, CommandService commandService,
          ExceptionReporter exceptionReporter, VolatileData volatileData, Globals globals, MessageUtilities messageUtilities,
-         IDbContextFactory<SpiritContext> dbContextFactory, IOptions<BotOptions> options, NewPassiveResponses newPassiveResponses)
+         IDbContextFactory<SpiritContext> dbContextFactory, IOptions<BotOptions> options, NewPassiveResponses newPassiveResponses, GenAI genAI, GenAIAgentLibrary genAIAgentLibrary)
         : base(client, logger)
     {
+        aiService = genAI;
+        this.genAIAgentLibrary = genAIAgentLibrary;
         _provider = provider;
         _commandService = commandService;
         _exceptionReporter = exceptionReporter;
@@ -51,6 +55,7 @@ public partial class MessageHandler : DiscordClientService
         Client.MessageDeleted += OnMessageDeleted;
         Client.MessageUpdated += OnMessageUpdated;
         Client.MessageReceived += OnMessageReceived;
+        
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -231,8 +236,11 @@ public partial class MessageHandler : DiscordClientService
                 // check for responses and that in the commands channel
                 else
                 {
+                  
                     await _newPassiveResponses.Run(context);
                 }
+                
+                
             }
 
         }).ContinueWith(async t =>

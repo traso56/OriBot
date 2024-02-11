@@ -99,6 +99,7 @@ internal static class Program
                         .AddHostedService<Services.EventHandler>()
                         // singletons
                         .AddSingleton<GenAI>()
+                        .AddSingleton<GenAIAgentLibrary>()
                         .AddSingleton<Globals>()
                         .AddHostedService<HostedServiceStarter<Globals>>()
                         .AddSingleton<NewPassiveResponses>()

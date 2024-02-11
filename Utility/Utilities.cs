@@ -8,6 +8,47 @@ namespace OriBot.Utility;
 
 public static partial class Utilities
 {
+    public static int DaysUntilBirthday(DateTime birthday)
+    {
+        // Ensure birthday is in the future
+        if (birthday < DateTime.Today)
+        {
+            // Birthday already passed this year, check for next year
+            birthday = birthday.AddYears(1);
+        }
+
+        // Calculate difference between today and birthday, ignoring time
+        DateTime todayWithoutTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day);
+        TimeSpan timeSpan = birthday - todayWithoutTime;
+
+        // Return the number of days
+        return timeSpan.Days;
+    }
+    public static string GetMonthName(int monthNumber)
+    {
+        if (monthNumber < 1 || monthNumber > 12)
+        {
+            throw new ArgumentOutOfRangeException(nameof(monthNumber), "Month number must be between 1 and 12.");
+        }
+
+        switch (monthNumber)
+        {
+            case 1: return "January";
+            case 2: return "February";
+            case 3: return "March";
+            case 4: return "April";
+            case 5: return "May";
+            case 6: return "June";
+            case 7: return "July";
+            case 8: return "August";
+            case 9: return "September";
+            case 10: return "October";
+            case 11: return "November";
+            case 12: return "December";
+            default: throw new ArgumentOutOfRangeException(nameof(monthNumber), "Invalid month number.");
+        }
+    }
+
     /// <summary>
     /// creates a filepath to retrieve files from the local program directory.
     /// </summary>

@@ -36,6 +36,13 @@ public class Matcher
 {
     private readonly Regex _generatedRegex;
 
+
+
+    public string Replace(string query, string replacement)
+    {
+        return _generatedRegex.Replace(query, replacement);
+    }
+
     public Matcher(string pattern, bool casesensitive) =>
         _generatedRegex = new Regex(pattern, (casesensitive ? RegexOptions.None : RegexOptions.IgnoreCase) | RegexOptions.Compiled);
 
