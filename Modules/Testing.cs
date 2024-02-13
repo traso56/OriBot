@@ -1,6 +1,8 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using System.Text;
+using System.Linq;
 
 namespace OriBot.Modules;
 
@@ -26,5 +28,17 @@ public class Testing : ModuleBase
     public Task TestException()
     {
         throw new NotImplementedException();
+    }
+    [ModCommand]
+    [Command("debugroles")]
+    public async Task DebugRoles()
+    {
+        var guildUser = (SocketGuildUser)Context.User;
+
+        StringBuilder stringBuilder = new StringBuilder();
+        foreach (var role in guildUser.Roles.Where(role => role.Name != "@everyone"))
+            stringBuilder.AppendLine(role.Name);
+
+        await ReplyAsync(stringBuilder.ToString());
     }
 }

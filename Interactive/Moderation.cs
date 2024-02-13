@@ -279,7 +279,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
             await FollowupAsync("Cannot mute this user");
             return;
         }
-        if (target.TimedOutUntil is not null)
+        if (target.TimedOutUntil > DateTimeOffset.UtcNow)
         {
             await FollowupAsync("This user is already muted");
             return;
@@ -334,7 +334,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
     {
         await DeferAsync(ephemeral: true);
 
-        if (target.TimedOutUntil is null)
+        if (target.TimedOutUntil is null || target.TimedOutUntil.Value < DateTimeOffset.UtcNow)
         {
             await FollowupAsync("This user is not muted");
             return;
