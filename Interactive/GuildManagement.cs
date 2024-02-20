@@ -209,33 +209,6 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
     {
         await DeferAsync(ephemeral: true);
 
-        // TODO: debug if retrieving the user is actually necessary, regular cast sometimes doesn't show roles for some reason
-        SocketGuildUser guildUser = Context.Guild.GetUser(Context.User.Id);
-
-        bool ticketDenied = false;
-        if (!guildUser.Roles.Contains(Globals.MemberRole))
-        {
-            await FollowupAsync("You need the members role to open a ticket. Make sure to read this channel carefully", ephemeral: true);
-            ticketDenied = true;
-        }
-        if (guildUser.TimedOutUntil > DateTimeOffset.UtcNow)
-        {
-            await FollowupAsync("Muted members can't create a ticket", ephemeral: true);
-            ticketDenied = true;
-        }
-
-        if (ticketDenied)
-        {
-            StringBuilder stringBuilder = new StringBuilder();
-            foreach (var role in guildUser.Roles.Where(role => role.Name != "@everyone"))
-                stringBuilder.AppendLine(role.Name);
-
-            await Globals.InfoChannel.SendMessageAsync($"User {guildUser.Mention}({guildUser.Username}) ID: {guildUser.Id} tried to make a ticket but couldn't.\n" +
-                $"Current roles:\n" +
-                stringBuilder.ToString());
-            return;
-        }
-
         using var db = DbContextFactory.CreateDbContext();
 
         if (db.Tickets.Any(t => t.TicketUserId == Context.User.Id))
