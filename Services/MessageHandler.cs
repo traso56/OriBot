@@ -6,10 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OriBot.Utility;
-using System.Net.Sockets;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace OriBot.Services;
 
@@ -73,9 +71,8 @@ public partial class MessageHandler : DiscordClientService
             }
             else
             {
-                if (result.ErrorReason == "Unknown command.")
-                    return;
-                await context.Channel.SendMessageAsync(result.ErrorReason);
+                if (context.User is SocketGuildUser guildUser && guildUser.GuildPermissions.BanMembers)
+                    await context.Channel.SendMessageAsync(result.ErrorReason);
             }
         }).ContinueWith(async t =>
         {
