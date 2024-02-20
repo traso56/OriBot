@@ -28,6 +28,7 @@ public partial class Basic : InteractionModuleBase<SocketInteractionContext>
     public required Globals Globals { get; set; }
     public required ILogger<Basic> Logger { get; set; }
 
+    [CommandsChannel]
     [SlashCommand("help", "Gives help (hopefully)")]
     public async Task Help()
     {
