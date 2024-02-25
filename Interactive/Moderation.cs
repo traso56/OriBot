@@ -24,8 +24,6 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
     {
         await DeferAsync(ephemeral: true);
 
-        using var db = DbContextFactory.CreateDbContext();
-
         EmbedBuilder builder = new EmbedBuilder()
             .WithColor(ColorConstants.SpiritCyan)
             .AddUserAvatar(target)
@@ -264,7 +262,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
     }
     [ModCommand]
     [SlashCommand("mute", "Mutes a user")]
-    public async Task Mute(SocketGuildUser target, [MinLength(3)] string reason, TimeSpan duration, Notify notifyIn)
+    public async Task Mute(SocketGuildUser target, [MinLength(3)][MaxLength(800)] string reason, TimeSpan duration, Notify notifyIn)
     {
         await DeferAsync(ephemeral: true);
 
@@ -330,7 +328,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
     }
     [ModCommand]
     [SlashCommand("unmute", "Unmutes a user")]
-    public async Task Unmute(SocketGuildUser target, [MinLength(3)] string reason, Notify notifyIn)
+    public async Task Unmute(SocketGuildUser target, [MinLength(3)][MaxLength(100)] string reason, Notify notifyIn)
     {
         await DeferAsync(ephemeral: true);
 
@@ -380,7 +378,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
     }
     [ModCommand]
     [SlashCommand("warn", "Warns a user")]
-    public async Task Warn(SocketGuildUser target, [MinLength(3)] string reason, Notify notifyIn)
+    public async Task Warn(SocketGuildUser target, [MinLength(3)][MaxLength(800)] string reason, Notify notifyIn)
     {
         await DeferAsync(ephemeral: true);
 
@@ -446,7 +444,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
     }
     [ModCommand]
     [SlashCommand("ban", "Bans a user")]
-    public async Task Ban(SocketUser target, [MinLength(3)] string reason, TimeSpan? duration = null,
+    public async Task Ban(SocketUser target, [MinLength(3)][MaxLength(800)] string reason, TimeSpan? duration = null,
         Notify notifyIn = Notify.OnlyLogChannel, PruneDays pruneDays = PruneDays.ZeroDays)
     {
         await DeferAsync(ephemeral: true);
@@ -515,7 +513,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
     }
     [ModCommand]
     [SlashCommand("unban", "Unbans a user")]
-    public async Task Unban(SocketUser target, [MinLength(3)] string reason)
+    public async Task Unban(SocketUser target, [MinLength(3)][MaxLength(100)] string reason)
     {
         await DeferAsync(ephemeral: true);
 
@@ -568,7 +566,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
     }
     [ModCommand]
     [SlashCommand("note", "Adds a note to a user")]
-    public async Task Log(SocketGuildUser target, [MinLength(3)] string reason)
+    public async Task Note(SocketGuildUser target, [MinLength(3)][MaxLength(900)] string reason)
     {
         await DeferAsync(ephemeral: true);
 
