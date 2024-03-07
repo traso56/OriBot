@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using OriBot.Services;
 using OriBot.Utility;
 using System;
+using System.ComponentModel;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -235,5 +236,152 @@ public partial class Basic : InteractionModuleBase<SocketInteractionContext>
             await FollowupAsync($"{emote} was made by <@{dbUniqueBadge.UserId}>", allowedMentions: new AllowedMentions(AllowedMentionTypes.None));
         else
             await FollowupAsync("I'm sorry. I don't know who made this emoji");
+    }
+    [SlashCommand("dice", "Throws an N sides die, default is 6, max value is 9007199254740991")]
+    public async Task Dice([MinValue(1)][MaxValue(9007199254740991)] long sides = 6)
+    {
+        Random rng = new Random();
+        long result = rng.NextInt64(sides) + 1;
+
+        EmbedBuilder embedBuilder = new EmbedBuilder()
+            .WithColor(ColorConstants.SpiritCyan)
+            .WithThumbnailUrl(Thumbnails.Dice)
+            .WithTitle($"Die with {sides} sides")
+            .AddField("Roll", result);
+
+        await RespondAsync(embed: embedBuilder.Build());
+    }
+    public enum Units
+    {
+        ftin,
+        F,
+        miles,
+        feet,
+        inches,
+        yards,
+        footballfields,
+        pounds,
+        C,
+        meters,
+        Kilometers,
+        Kilos
+    }
+    [SlashCommand("convert", "Converts units")]
+    public async Task RealUnit(string input, Units unit)
+    {
+        float output;
+        string inputUnit;
+        string outputUnit;
+
+        if (unit == Units.ftin)
+        {
+            string[] values = input.Split('\u0027'); //this is the ' character
+            if (values.Length != 2)
+            {
+                await RespondAsync("I wasn't able to understand this format, format is ft'in", ephemeral: true);
+                return;
+            }
+            else
+            {
+                if (!int.TryParse(values[0], out int ft))
+                {
+                    await RespondAsync("feet is not a valid number", ephemeral: true);
+                    return;
+                }
+                if (!int.TryParse(values[1], out int inches))
+                {
+                    await RespondAsync("inches is not a valid number", ephemeral: true);
+                    return;
+                }
+                if (inches is < 0 or > 11)
+                {
+                    await RespondAsync("inches is under 0 or over 11", ephemeral: true);
+                    return;
+                }
+                output = ft * 30.48f + inches * 2.54f;
+                inputUnit = "Feet and inches";
+                outputUnit = "Centimeters";
+            }
+        }
+        else
+        {
+            if (!float.TryParse(input, out float value))
+            {
+                await RespondAsync("This is not a valid number");
+                return;
+            }
+            switch (unit)
+            {
+                //temp
+                case Units.F:
+                    output = (value - 32f) / 1.8f;
+                    inputUnit = "°F";
+                    outputUnit = "°C";
+                    break;
+                //length
+                case Units.miles:
+                    output = value * 1.609344f;
+                    inputUnit = "Miles";
+                    outputUnit = "Kilometers";
+                    break;
+                case Units.feet:
+                    output = value * 0.3048f;
+                    inputUnit = "Feet";
+                    outputUnit = "Meters";
+                    break;
+                case Units.inches:
+                    output = value * 2.54f;
+                    inputUnit = "Inches";
+                    outputUnit = "Centimeters";
+                    break;
+                case Units.yards:
+                    output = value * 0.9144f;
+                    inputUnit = "Yards";
+                    outputUnit = "Meters";
+                    break;
+                case Units.footballfields:
+                    output = value * 91.44f;
+                    inputUnit = "Football fields";
+                    outputUnit = "Meters";
+                    break;
+                //weight
+                case Units.pounds:
+                    output = value * 0.45359237f;
+                    inputUnit = "Pounds";
+                    outputUnit = "Kilograms";
+                    break;
+                case Units.C:
+                    output = value * 1.8f + 32;
+                    inputUnit = "°C";
+                    outputUnit = "°F";
+                    break;
+                case Units.meters:
+                    output = value * 3.2808f;
+                    inputUnit = "Meters";
+                    outputUnit = "Feet";
+                    break;
+                case Units.Kilometers:
+                    output = value * 0.6214f;
+                    inputUnit = "Kilometers";
+                    outputUnit = "Miles";
+                    break;
+                case Units.Kilos:
+                    output = value * 2.2046f;
+                    inputUnit = "Kilograms";
+                    outputUnit = "Pounds";
+                    break;
+                default:
+                    throw new InvalidEnumArgumentException("Conversion unit not handled");
+            }
+        }
+
+        EmbedBuilder embedBuilder = new EmbedBuilder()
+            .WithColor(ColorConstants.SpiritBlue)
+            .WithThumbnailUrl(Thumbnails.Ruler)
+            .WithTitle("Unit conversion")
+            .AddField($"From {inputUnit}", input, true)
+            .AddField($"To {outputUnit}", output.ToString("#.##"), true);
+
+        await RespondAsync(embed: embedBuilder.Build());
     }
 }
