@@ -15,20 +15,20 @@ public class BackgroundTasks : DiscordClientService
     private readonly IDbContextFactory<SpiritContext> _dbContextFactory;
     private readonly ExceptionReporter _exceptionReporter;
     private readonly VolatileData _volatileData;
-    private readonly Globals _globals;
+    private readonly BotOptions _botOptions;
 
     private string[] _statuses = null!;
     private int _currentStatusIndex = 0;
 
     public BackgroundTasks(DiscordSocketClient client, ILogger<DiscordClientService> logger, IOptionsMonitor<CooldownOptions> cooldownOptions,
-        IDbContextFactory<SpiritContext> dbContextFactory, ExceptionReporter exceptionReporter, VolatileData volatileData, Globals globals)
+        IDbContextFactory<SpiritContext> dbContextFactory, ExceptionReporter exceptionReporter, VolatileData volatileData, IOptions<BotOptions> botOptions)
         : base(client, logger)
     {
         _cooldownOptions = cooldownOptions;
         _dbContextFactory = dbContextFactory;
         _exceptionReporter = exceptionReporter;
         _volatileData = volatileData;
-        _globals = globals;
+        _botOptions = botOptions.Value;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -96,6 +96,8 @@ public class BackgroundTasks : DiscordClientService
                 }
 
                 // check bans
+                SocketGuild mainGuild = Client.GetGuild(_botOptions.MainGuildId);
+
                 var expiredBans = db.Punishments.Where(
                     p => p.CheckForExpiry &&
                     p.Type == PunishmentType.Ban &&
@@ -104,7 +106,7 @@ public class BackgroundTasks : DiscordClientService
                 {
                     try
                     {
-                        await _globals.MainGuild.RemoveBanAsync(expiredBan.PunishedId);
+                        await mainGuild.RemoveBanAsync(expiredBan.PunishedId);
                     }
                     catch (Discord.Net.HttpException e)
                     {
@@ -118,10 +120,13 @@ public class BackgroundTasks : DiscordClientService
                 var imageRolesToGive = db.PendingImageRoles.Where(u => u.ImageRoleDateTime > DateTime.Now).ToArray();
                 foreach (var imageRoleToGive in imageRolesToGive)
                 {
-                    SocketGuildUser? user = _globals.MainGuild.GetUser(imageRoleToGive.UserId);
+                    SocketGuildUser? user = mainGuild.GetUser(imageRoleToGive.UserId);
 
                     if (user is not null)
-                        await user.AddRoleAsync(_globals.ImagesRole);
+                    {
+                        SocketRole imagesRole = mainGuild.GetRole(_botOptions.ImagesRoleId);
+                        await user.AddRoleAsync(imagesRole);
+                    }
 
                     db.Remove(imageRoleToGive);
                 }

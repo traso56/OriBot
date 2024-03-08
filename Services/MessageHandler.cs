@@ -23,14 +23,13 @@ public partial class MessageHandler : DiscordClientService
     private readonly CommandService _commandService;
     private readonly ExceptionReporter _exceptionReporter;
     private readonly VolatileData _volatileData;
-    private readonly Globals _globals;
+    private readonly BotOptions _botOptions;
     private readonly MessageUtilities _messageUtilities;
     private readonly IDbContextFactory<SpiritContext> _dbContextFactory;
     private readonly PassiveResponses _passiveResponses;
-    private readonly BotOptions _botOptions;
 
     public MessageHandler(DiscordSocketClient client, ILogger<DiscordClientService> logger, IServiceProvider provider, CommandService commandService,
-         ExceptionReporter exceptionReporter, VolatileData volatileData, Globals globals, MessageUtilities messageUtilities,
+         ExceptionReporter exceptionReporter, VolatileData volatileData, IOptions<BotOptions> botOptions, MessageUtilities messageUtilities,
          IDbContextFactory<SpiritContext> dbContextFactory, IOptions<BotOptions> options, PassiveResponses passiveResponses)
         : base(client, logger)
     {
@@ -38,11 +37,10 @@ public partial class MessageHandler : DiscordClientService
         _commandService = commandService;
         _exceptionReporter = exceptionReporter;
         _volatileData = volatileData;
-        _globals = globals;
+        _botOptions = botOptions.Value;
         _messageUtilities = messageUtilities;
         _dbContextFactory = dbContextFactory;
         _passiveResponses = passiveResponses;
-        _botOptions = options.Value;
 
         commandService.CommandExecuted += OnCommandExecuted;
 
@@ -93,7 +91,8 @@ public partial class MessageHandler : DiscordClientService
                 EmbedBuilder embedBuilder = Utilities.QuoteUserMessage("Message deleted", message, ColorConstants.SpiritRed,
                     includeOriginChannel: true, includeDirectUserLink: true, includeMessageReference: true);
 
-                await _messageUtilities.SendMessageWithFiles(_globals.NotesChannel, embedBuilder, message,
+                var notesChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.NotesChannelId);
+                await _messageUtilities.SendMessageWithFiles(notesChannel, embedBuilder, message,
                     Utilities.CreateMessageJumpButton(message));
 
                 if (channel.Id == _botOptions.ArtChannelId)
@@ -114,7 +113,8 @@ public partial class MessageHandler : DiscordClientService
                     .AddField("Message was created on", Utilities.FullDateTimeStamp(deleteDate), true)
                     .AddField("Channel", $"<#{channel.Id}>", true);
 
-                await _globals.NotesChannel.SendMessageAsync(embed: embedBuilder.Build());
+                var notesChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.NotesChannelId);
+                await notesChannel.SendMessageAsync(embed: embedBuilder.Build());
             }
 
         }).ContinueWith(async t =>
@@ -158,7 +158,8 @@ public partial class MessageHandler : DiscordClientService
                     .WithDirectUserLink(message.Author)
                     .WithCurrentTimestamp();
 
-                await _globals.NotesChannel.SendMessageAsync(embed: embedBuilder.Build(), components: Utilities.CreateMessageJumpButton(newMessage).Build());
+                var notesChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.NotesChannelId);
+                await notesChannel.SendMessageAsync(embed: embedBuilder.Build(), components: Utilities.CreateMessageJumpButton(newMessage).Build());
             }
 
         }).ContinueWith(async t =>
@@ -195,7 +196,7 @@ public partial class MessageHandler : DiscordClientService
                         foreach (Match match in matches)
                         {
                             IGuildUser user = await thread.Guild.GetUserAsync(ulong.Parse(match.Groups[1].Value));
-                            if (!(user.RoleIds.Contains(_globals.ModRole.Id) || user.Id == Client.CurrentUser.Id || user.Id == threadUserId))
+                            if (!(user.RoleIds.Contains(_botOptions.ModRoleId) || user.Id == Client.CurrentUser.Id || user.Id == threadUserId))
                                 await thread.RemoveUserAsync(user);
                         }
                     }
@@ -221,12 +222,12 @@ public partial class MessageHandler : DiscordClientService
                     await _commandService.ExecuteAsync(context, argPos, _provider);
                 }
                 // check for responses and that in the commands channel
-                else if (context.Channel.Id == _globals.CommandsChannel.Id)
+                else if (context.Channel.Id == _botOptions.CommandsChannelId)
                 {
                     await CommandsChannelMessage(context);
                 }
                 // any mod mention
-                else if (message.Content.StartsWith(_globals.AnyModRole.Mention))
+                else if (message.Content.StartsWith($"<@&{_botOptions.AnyModRoleId}>"))
                 {
                     await AnyModPingHandler(context);
                 }
@@ -285,14 +286,14 @@ public partial class MessageHandler : DiscordClientService
     ********************************************/
     private async Task AnyModPingHandler(SocketCommandContext context)
     {
-        var mods = _globals.MainGuild.Users.Where(u => u.Roles.Contains(_globals.ModRole)
-            && !u.Roles.Contains(_globals.UnAvailableModRole)
+        var mods = context.Guild.Users.Where(u => u.Roles.Select(r => r.Id).Contains(_botOptions.ModRoleId)
+            && !u.Roles.Select(r => r.Id).Contains(_botOptions.UnavailableModRoleId)
             && u.Status is UserStatus.Online or UserStatus.Idle or UserStatus.AFK)
             .ToArray();
         if (mods.Length == 0)
         {
             await context.Channel.SendMessageAsync($"No mods are readily available! " +
-                $"I have to ping the whole role so that whoever is here can get to you. It's no problem! {_globals.ModRole.Mention}");
+                $"I have to ping the whole role so that whoever is here can get to you. It's no problem! <@{_botOptions.ModRoleId}>");
         }
         else
         {
@@ -311,6 +312,7 @@ public partial class MessageHandler : DiscordClientService
 
         await _messageUtilities.TrySendDmAsync(context.User, dmMessage, embedBuilder);
 
-        await _messageUtilities.SendMessageWithFiles(_globals.AutosChannel, embedBuilder, context.Message);
+        var autosChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.AutosChannelId);
+        await _messageUtilities.SendMessageWithFiles(autosChannel, embedBuilder, context.Message);
     }
 }

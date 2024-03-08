@@ -6,20 +6,49 @@ public class BotOptions
 
     public required string Prefix { get; set; }
     public required string DiscordToken { get; set; }
+    public required ulong TrasoId { get; set; }
 
     public required ulong MainGuildId { get; set; }
-
+    /// <summary>
+    /// Art channel
+    /// </summary>
     public required ulong ArtChannelId { get; set; }
-
+    /// <summary>
+    /// Channel for exception logs
+    /// </summary>
     public required ulong InfoChannelId { get; set; }
 
+    /// <summary>
+    /// Channel for moderation actions
+    /// </summary>
     public required ulong LogChannelId { get; set; }
+    /// <summary>
+    /// Channel for deleted messages
+    /// </summary>
     public required ulong NotesChannelId { get; set; }
+    /// <summary>
+    /// Channel for automatic actions
+    /// </summary>
     public required ulong AutosChannelId { get; set; }
+    /// <summary>
+    /// Channel for tickets/feedback
+    /// </summary>
     public required ulong FeedbackChannelId { get; set; }
+    /// <summary>
+    /// Channel for commands
+    /// </summary>
     public required ulong CommandsChannelId { get; set; }
+    /// <summary>
+    /// Channel for joins/leaves
+    /// </summary>
     public required ulong MembersChannelId { get; set; }
+    /// <summary>
+    /// Channel for pinned messages
+    /// </summary>
     public required ulong StarBoardChannelId { get; set; }
+    /// <summary>
+    /// The channel for sending voice activity
+    /// </summary>
     public required ulong VoiceActivityChannelId { get; set; }
 
     public required ulong MemberRoleId { get; set; }

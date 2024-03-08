@@ -12,13 +12,13 @@ namespace OriBot.Services;
 public class PassiveResponses
 {
     private readonly IOptionsMonitor<PassiveResponsesOptions> _passiveResponsesOptions;
-    private readonly Globals _globals;
+    private readonly BotOptions _botOptions;
     private readonly ILogger<PassiveResponses> _logger;
 
-    public PassiveResponses(IOptionsMonitor<PassiveResponsesOptions> passiveResponsesOptions, Globals globals, ILogger<PassiveResponses> logger)
+    public PassiveResponses(IOptionsMonitor<PassiveResponsesOptions> passiveResponsesOptions, IOptions<BotOptions> botOptions, ILogger<PassiveResponses> logger)
     {
         _passiveResponsesOptions = passiveResponsesOptions;
-        _globals = globals;
+        _botOptions = botOptions.Value;
         _logger = logger;
     }
 
@@ -862,7 +862,7 @@ public class PassiveResponses
             }
         }
 
-        if (!AllowInAnyChannel && message.Channel.Id != _globals.CommandsChannel.Id && !((SocketGuildUser)context.User).GuildPermissions.BanMembers) return;
+        if (!AllowInAnyChannel && message.Channel.Id != _botOptions.CommandsChannelId && !((SocketGuildUser)context.User).GuildPermissions.BanMembers) return;
         // Abort if they need to be in bot channel and they aren't.
         // This handler should never intercept messages, so don't return true.
 

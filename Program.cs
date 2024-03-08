@@ -92,8 +92,6 @@ internal static class Program
                         .AddHostedService<BackgroundTasks>()
                         .AddHostedService<Services.EventHandler>()
                         // singletons
-                        .AddSingleton<Globals>()
-                        .AddHostedService<HostedServiceStarter<Globals>>()
                         .AddSingleton<ExceptionReporter>()
                         .AddSingleton<VolatileData>()
                         .AddSingleton<MessageUtilities>()

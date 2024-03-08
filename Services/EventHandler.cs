@@ -16,13 +16,13 @@ public class EventHandler : DiscordClientService
     private readonly MessageUtilities _messageUtilities;
     private readonly IDbContextFactory<SpiritContext> _dbContextFactory;
     private readonly VolatileData _volatileData;
-    private readonly Globals _globals;
+    private readonly BotOptions _botOptions;
     private readonly IOptionsMonitor<PinOptions> _pinOptions;
 
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
     public EventHandler(DiscordSocketClient client, ILogger<EventHandler> logger, ExceptionReporter exceptionReporter, IOptionsMonitor<UserJoinOptions> userJoinOptions,
-        MessageUtilities messageUtilities, IDbContextFactory<SpiritContext> dbContextFactory, VolatileData volatileData, Globals globals,
+        MessageUtilities messageUtilities, IDbContextFactory<SpiritContext> dbContextFactory, VolatileData volatileData, IOptions<BotOptions> botOptions,
         IOptionsMonitor<PinOptions> pinOptions)
         : base(client, logger)
     {
@@ -31,7 +31,7 @@ public class EventHandler : DiscordClientService
         _messageUtilities = messageUtilities;
         _dbContextFactory = dbContextFactory;
         _volatileData = volatileData;
-        _globals = globals;
+        _botOptions = botOptions.Value;
         _pinOptions = pinOptions;
 
         Client.AutoModActionExecuted += OnAutoModExecuted;
@@ -94,9 +94,8 @@ public class EventHandler : DiscordClientService
                 default:
                     throw new InvalidEnumArgumentException("Voice enum stae is invalid.");
             }
-
-
-            await _globals.VoiceActivityChannel.SendMessageAsync(embed: embedBuilder.Build());
+            var voiceActivityChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.VoiceActivityChannelId);
+            await voiceActivityChannel.SendMessageAsync(embed: embedBuilder.Build());
 
         }).ContinueWith(async t =>
         {
@@ -156,7 +155,8 @@ public class EventHandler : DiscordClientService
                     $"You were muted for {rule.TimeoutDuration!.Value.ToReadableString()}";
                 await _messageUtilities.TrySendDmAsync(target, muteMessage, embedBuilder);
 
-                await _globals.LogChannel.SendMessageAsync(embed: embedBuilder.Build());
+                var logChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.LogChannelId);
+                await logChannel.SendMessageAsync(embed: embedBuilder.Build());
             }
         }).ContinueWith(async t =>
         {
@@ -203,7 +203,8 @@ public class EventHandler : DiscordClientService
                     .AddField("Duration", "forever")
                     .WithCurrentTimestamp();
 
-                await _globals.LogChannel.SendMessageAsync(embed: embedBuilder.Build());
+                var logChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.LogChannelId);
+                await logChannel.SendMessageAsync(embed: embedBuilder.Build());
             }
         }).ContinueWith(async t =>
         {
@@ -234,7 +235,8 @@ public class EventHandler : DiscordClientService
 
                 await user.KickAsync("Account too new");
 
-                await _globals.AutosChannel.SendMessageAsync(embed: kickedEmbedBuilder.Build());
+                var autosChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.AutosChannelId);
+                await autosChannel.SendMessageAsync(embed: kickedEmbedBuilder.Build());
                 return;
             }
 
@@ -251,7 +253,8 @@ public class EventHandler : DiscordClientService
             if (userMuted)
                 joinEmbedBuilder.AddField("User was previously muted, unmute time", Utilities.FullDateTimeStamp(user.TimedOutUntil!.Value));
 
-            await _globals.MembersChannel.SendMessageAsync(embed: joinEmbedBuilder.Build());
+            var membersChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.MembersChannelId);
+            await membersChannel.SendMessageAsync(embed: joinEmbedBuilder.Build());
 
         }).ContinueWith(async t =>
         {
@@ -277,7 +280,8 @@ public class EventHandler : DiscordClientService
                 .WithDirectUserLink(user)
                 .WithCurrentTimestamp();
 
-            await _globals.MembersChannel.SendMessageAsync(embed: embedBuilder.Build());
+            var membersChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.MembersChannelId);
+            await membersChannel.SendMessageAsync(embed: embedBuilder.Build());
 
         }).ContinueWith(async t =>
         {
@@ -290,7 +294,7 @@ public class EventHandler : DiscordClientService
     {
         Task.Run(async () =>
         {
-            if (channel.Id != _globals.ArtChannel.Id || reaction.UserId == Client.CurrentUser.Id) //art channel stuff
+            if (channel.Id != _botOptions.ArtChannelId || reaction.UserId == Client.CurrentUser.Id) //art channel stuff
                 return;
 
             if (reaction.Emote.Equals(Emotes.CrossMark))
@@ -298,7 +302,8 @@ public class EventHandler : DiscordClientService
                 await _semaphore.WaitAsync();
                 try
                 {
-                    IUserMessage reactedMessage = message.Value ?? (IUserMessage)await _globals.ArtChannel.GetMessageAsync(message.Id);
+                    var artChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.ArtChannelId);
+                    IUserMessage reactedMessage = message.Value ?? (IUserMessage)await artChannel.GetMessageAsync(message.Id);
                     if (reaction.UserId == reactedMessage.Author.Id)
                         await reactedMessage.RemoveAllReactionsForEmoteAsync(Emotes.Pin); //if image author reacts with "X" then remove all pins
                 }
@@ -312,7 +317,8 @@ public class EventHandler : DiscordClientService
                 await _semaphore.WaitAsync();
                 try
                 {
-                    IUserMessage reactedMessage = message.Value ?? (IUserMessage)await _globals.ArtChannel.GetMessageAsync(message.Id);
+                    var artChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.ArtChannelId);
+                    IUserMessage reactedMessage = message.Value ?? (IUserMessage)await artChannel.GetMessageAsync(message.Id);
                     if (reactedMessage.Reactions.TryGetValue(Emotes.Pin, out ReactionMetadata metaData)
                         && metaData.IsMe && metaData.ReactionCount >= _pinOptions.CurrentValue.PinAmount
                         && DateTimeOffset.UtcNow - reactedMessage.CreatedAt < new TimeSpan(45, 0, 0, 0)) //is it a pin and was it created less than 45 days ago?
@@ -323,7 +329,8 @@ public class EventHandler : DiscordClientService
                         EmbedBuilder embedBuilder = Utilities.QuoteUserMessage($"Post by {reactedMessage.Author.Username}", reactedMessage,
                             ColorConstants.SpiritCyan, includeOriginChannel: false, includeDirectUserLink: false, includeMessageReference: false);
 
-                        await _messageUtilities.SendMessageWithFiles(_globals.StarBoardChannel, embedBuilder, reactedMessage,
+                        var starBoardChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.StarBoardChannelId);
+                        await _messageUtilities.SendMessageWithFiles(starBoardChannel, embedBuilder, reactedMessage,
                             Utilities.CreateMessageJumpButton(reactedMessage));
 
                         using var db = _dbContextFactory.CreateDbContext();
@@ -363,7 +370,9 @@ public class EventHandler : DiscordClientService
                 .WithFooter($"Member ID: {after.Id}")
                 .WithCurrentTimestamp();
 
-            await _globals.MembersChannel.SendMessageAsync(embed: embedBuilder.Build());
+            var membersChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.MembersChannelId);
+            await membersChannel.SendMessageAsync(embed: embedBuilder.Build());
+
         }).ContinueWith(async t =>
         {
             var exceptionContext = new ExceptionContext();

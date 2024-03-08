@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using OriBot.Services;
 using OriBot.Utility;
 using System.Diagnostics;
@@ -11,7 +12,7 @@ namespace OriBot.Modules;
 public class Traso : ModuleBase
 {
     public required IHostApplicationLifetime ApplicationLifetime { get; set; }
-    public required Globals Globals { get; set; }
+    public required IOptions<BotOptions> BotOptions { get; set; }
     public required Discord.Interactions.InteractionService InteractionService { get; set; }
     public required VolatileData VolatileData { get; set; }
     public required MessageUtilities MessageUtilities { get; set; }
@@ -28,7 +29,7 @@ public class Traso : ModuleBase
     [Command("register")]
     public async Task Register()
     {
-        await InteractionService.RegisterCommandsToGuildAsync(Globals.MainGuild.Id);
+        await InteractionService.RegisterCommandsToGuildAsync(BotOptions.Value.MainGuildId);
         await ReplyAsync("Registered");
     }
     [RequireOwner]

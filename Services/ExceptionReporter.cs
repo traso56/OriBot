@@ -33,12 +33,14 @@ public partial class ExceptionReporter
     private static partial Regex BlockDelimiterRegex();
 
     private readonly ILogger<ExceptionReporter> _logger;
-    private readonly Globals _globals;
+    private readonly DiscordSocketClient _client;
+    BotOptions _botOptions;
 
-    public ExceptionReporter(ILogger<ExceptionReporter> logger, Globals globals)
+    public ExceptionReporter(ILogger<ExceptionReporter> logger, DiscordSocketClient client, IOptions<BotOptions> botOptions)
     {
         _logger = logger;
-        _globals = globals;
+        _client = client;
+        _botOptions = botOptions.Value;
     }
 
     public async Task NotifyExceptionAsync(Exception exception, ExceptionContext context, string errorReason, bool notifyInPlace)
@@ -65,11 +67,11 @@ public partial class ExceptionReporter
             // report in the place it happened
             if (notifyInPlace && context.Channel is IMessageChannel messageChannel)
             {
-                string errorMessage = $"There was an internal error, please check the logs, pinging {_globals.Traso.Mention}";
+                string errorMessage = $"There was an internal error, please check the logs, pinging <@{_botOptions.TrasoId}>";
                 if (exception is DbUpdateConcurrencyException)
-                    errorMessage = $"There was an error updating records in the database, perhaps it was updated elsewhere during this command, pinging {_globals.Traso.Mention}";
+                    errorMessage = $"There was an error updating records in the database, perhaps it was updated elsewhere during this command, pinging <@{_botOptions.TrasoId}>";
                 else if (exception is OverflowException)
-                    errorMessage = exception.Message + $", pinging {_globals.Traso.Mention}";
+                    errorMessage = exception.Message + $", pinging <@{_botOptions.TrasoId}>";
 
                 await messageChannel.SendMessageAsync(errorMessage);
             }
@@ -96,9 +98,10 @@ public partial class ExceptionReporter
     }
     private async Task SendToLogChannelAsync(string errorLog)
     {
+        var infoChannel = (ITextChannel)await _client.GetChannelAsync(_botOptions.InfoChannelId);
         if (errorLog.Length <= 1990)
         {
-            await _globals.InfoChannel.SendMessageAsync(errorLog);
+            await infoChannel.SendMessageAsync(errorLog);
         }
         else
         {
@@ -131,7 +134,7 @@ public partial class ExceptionReporter
                 {
                     nextNeedsBlock = false;
                 }
-                await _globals.InfoChannel.SendMessageAsync(subString);
+                await infoChannel.SendMessageAsync(subString);
             }
         }
     }

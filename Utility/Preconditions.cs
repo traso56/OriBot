@@ -1,6 +1,8 @@
 ﻿using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using OriBot;
 using OriBot.Services;
 
 namespace Discord.Interactions
@@ -28,8 +30,8 @@ namespace Discord.Interactions
     {
         public override Task<PreconditionResult> CheckRequirementsAsync(IInteractionContext context, ICommandInfo commandInfo, IServiceProvider services)
         {
-            var globals = services.GetRequiredService<Globals>();
-            if (context.Channel.Id == globals.CommandsChannel.Id || ((IGuildUser)context.User).GuildPermissions.BanMembers)
+            var botOptions = services.GetRequiredService<IOptions<BotOptions>>();
+            if (context.Channel.Id == botOptions.Value.CommandsChannelId || ((IGuildUser)context.User).GuildPermissions.BanMembers)
                 return Task.FromResult(PreconditionResult.FromSuccess());
             else
                 return Task.FromResult(PreconditionResult.FromError("Please use this command in the commands channel."));
@@ -65,8 +67,8 @@ namespace Discord.Commands
     {
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            var globals = services.GetRequiredService<Globals>();
-            if (context.Channel.Id == globals.CommandsChannel.Id || ((IGuildUser)context.User).GuildPermissions.BanMembers)
+            var botOptions = services.GetRequiredService<IOptions<BotOptions>>();
+            if (context.Channel.Id == botOptions.Value.CommandsChannelId || ((IGuildUser)context.User).GuildPermissions.BanMembers)
                 return Task.FromResult(PreconditionResult.FromSuccess());
             else
                 return Task.FromResult(PreconditionResult.FromError("Please use this command in the commands channel."));

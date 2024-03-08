@@ -24,7 +24,7 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
 
     public required IDbContextFactory<SpiritContext> DbContextFactory { get; set; }
     public required IOptionsMonitor<UserJoinOptions> UserJoinOptions { get; set; }
-    public required Globals Globals { get; set; }
+    public required IOptions<BotOptions> BotOptions { get; set; }
     public required MessageUtilities MessageUtilities { get; set; }
     public required VolatileData VolatileData { get; set; }
 
@@ -150,13 +150,14 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
 
         var guildUser = (SocketGuildUser)Context.User;
 
-        if (guildUser.Roles.Contains(Globals.MemberRole))
+        if (guildUser.Roles.Select(r => r.Id).Contains(BotOptions.Value.MemberRoleId))
         {
             await FollowupAsync("You have already clicked this button", ephemeral: true);
             return;
         }
 
-        await guildUser.AddRoleAsync(Globals.MemberRole);
+        SocketRole memberRole = Context.Guild.GetRole(BotOptions.Value.MemberRoleId);
+        await guildUser.AddRoleAsync(memberRole);
 
         int imageRoleDays = UserJoinOptions.CurrentValue.ImageRoleDays;
         var pendingImageRoleUser = db.PendingImageRoles.FirstOrDefault(u => u.UserId == Context.User.Id);
@@ -185,7 +186,7 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
 
         var guildUser = (SocketGuildUser)Context.User;
 
-        if (guildUser.Roles.Contains(Globals.ImagesRole))
+        if (guildUser.Roles.Select(r => r.Id).Contains(BotOptions.Value.ImagesRoleId))
         {
             await FollowupAsync("You already have the images role", ephemeral: true);
         }
@@ -195,7 +196,9 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
         }
         else
         {
-            await guildUser.AddRoleAsync(Globals.ImagesRole);
+            SocketRole imagesRole = Context.Guild.GetRole(BotOptions.Value.MemberRoleId);
+
+            await guildUser.AddRoleAsync(imagesRole);
             await FollowupAsync("Images role given successfully", ephemeral: true);
         }
     }
@@ -217,8 +220,10 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
             return;
         }
 
-        IThreadChannel thread = await Globals.FeedbackChannel.CreateThreadAsync($"{Context.User}: {modal.Reason}", ThreadType.PrivateThread, invitable: false);
-        await Globals.FeedbackChannel.SendMessageAsync($"{Globals.ModRole.Mention} a new ticket has been created: {thread.Mention}");
+        SocketTextChannel feedbackChannel = Context.Guild.GetTextChannel(BotOptions.Value.FeedbackChannelId);
+
+        SocketThreadChannel thread = await feedbackChannel.CreateThreadAsync($"{Context.User}: {modal.Reason}", ThreadType.PrivateThread, invitable: false);
+        await feedbackChannel.SendMessageAsync($"<@&{BotOptions.Value.ModRoleId}> a new ticket has been created: {thread.Mention}");
         await thread.SendMessageAsync($"Hello {Context.User.Mention}, what can we help you with?");
 
         var dbTicket = new Ticket
@@ -231,6 +236,6 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
 
         VolatileData.TicketThreads.TryAdd(thread.Id, Context.User.Id);
 
-        await FollowupAsync($"Ticket created: {Globals.FeedbackChannel.Mention}", ephemeral: true);
+        await FollowupAsync($"Ticket created: {feedbackChannel.Mention}", ephemeral: true);
     }
 }

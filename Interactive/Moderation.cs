@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using OriBot.Services;
 using OriBot.Utility;
 using System.ComponentModel;
+using Microsoft.Extensions.Options;
 
 namespace OriBot.Interactive;
 
@@ -16,7 +17,7 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
     public required MessageUtilities MessageUtilities { get; set; }
     public required DiscordSocketClient Client { get; set; }
     public required PaginatorFactory PaginatorFactory { get; set; }
-    public required Globals Globals { get; set; }
+    public required IOptions<BotOptions> BotOptions { get; set; }
 
     [ModCommand]
     [SlashCommand("dm", "dm")]
@@ -37,7 +38,8 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
         else
             await FollowupAsync("DM failed to send");
 
-        await Globals.LogChannel.SendMessageAsync(embed: builder.Build());
+        SocketTextChannel logChannel = Context.Guild.GetTextChannel(BotOptions.Value.LogChannelId);
+        await logChannel.SendMessageAsync(embed: builder.Build());
     }
     [ModCommand]
     [SlashCommand("purge", "Clears messages")]
@@ -57,8 +59,8 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
             .AddField("Message purge executed", $"{amount} messages deleted from <#{Context.Channel.Id}> by {Context.User.Username}")
             .WithCurrentTimestamp();
 
-
-        await Globals.LogChannel.SendMessageAsync(embed: builder.Build());
+        SocketTextChannel logChannel = Context.Guild.GetTextChannel(BotOptions.Value.LogChannelId);
+        await logChannel.SendMessageAsync(embed: builder.Build());
     }
     [ModCommand]
     [SlashCommand("deletelog", "Deletes an infraction / log on someone")]
@@ -102,7 +104,8 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
                 await MessageUtilities.TrySendDmAsync(target, muteMessage, embedBuilder);
             }
 
-            await Globals.LogChannel.SendMessageAsync(embed: embedBuilder.Build());
+            SocketTextChannel logChannel = Context.Guild.GetTextChannel(BotOptions.Value.LogChannelId);
+            await logChannel.SendMessageAsync(embed: embedBuilder.Build());
 
             await ModifyOriginalResponseAsync(m =>
             {
@@ -149,7 +152,8 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
                 .AddField("Notification setting", notifyIn.ToString())
                 .WithCurrentTimestamp();
 
-            await Globals.LogChannel.SendMessageAsync(embed: embedBuilder.Build());
+            SocketTextChannel logChannel = Context.Guild.GetTextChannel(BotOptions.Value.LogChannelId);
+            await logChannel.SendMessageAsync(embed: embedBuilder.Build());
 
             if (notifyIn is Notify.UserDm)
             {
@@ -322,7 +326,8 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
             await MessageUtilities.TrySendDmAsync(target, muteMessage, embedBuilder);
         }
 
-        await Globals.LogChannel.SendMessageAsync(embed: embedBuilder.Build());
+        SocketTextChannel logChannel = Context.Guild.GetTextChannel(BotOptions.Value.LogChannelId);
+        await logChannel.SendMessageAsync(embed: embedBuilder.Build());
 
         await FollowupAsync("Success");
     }
@@ -372,7 +377,8 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
             await MessageUtilities.TrySendDmAsync(target, muteMessage, embedBuilder);
         }
 
-        await Globals.LogChannel.SendMessageAsync(embed: embedBuilder.Build());
+        SocketTextChannel logChannel = Context.Guild.GetTextChannel(BotOptions.Value.LogChannelId);
+        await logChannel.SendMessageAsync(embed: embedBuilder.Build());
 
         await FollowupAsync("Success");
     }
@@ -427,7 +433,8 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
             await MessageUtilities.TrySendDmAsync(target, muteMessage, embedBuilder);
         }
 
-        await Globals.LogChannel.SendMessageAsync(embed: embedBuilder.Build());
+        SocketTextChannel logChannel = Context.Guild.GetTextChannel(BotOptions.Value.LogChannelId);
+        await logChannel.SendMessageAsync(embed: embedBuilder.Build());
 
         await FollowupAsync("Success");
     }
@@ -507,7 +514,8 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
             await MessageUtilities.TrySendDmAsync(target, muteMessage, embedBuilder);
         }
 
-        await Globals.LogChannel.SendMessageAsync(embed: embedBuilder.Build());
+        SocketTextChannel logChannel = Context.Guild.GetTextChannel(BotOptions.Value.LogChannelId);
+        await logChannel.SendMessageAsync(embed: embedBuilder.Build());
 
         await FollowupAsync("Success");
     }
@@ -556,7 +564,8 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
             .AddField("Unbanned by", Context.User.Mention)
             .WithCurrentTimestamp();
 
-        await Globals.LogChannel.SendMessageAsync(embed: embedBuilder.Build());
+        SocketTextChannel logChannel = Context.Guild.GetTextChannel(BotOptions.Value.LogChannelId);
+        await logChannel.SendMessageAsync(embed: embedBuilder.Build());
 
         await ModifyOriginalResponseAsync(m =>
         {
@@ -605,7 +614,8 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
 
         db.SaveChanges();
 
-        await Globals.LogChannel.SendMessageAsync(embed: embedBuilder.Build());
+        SocketTextChannel logChannel = Context.Guild.GetTextChannel(BotOptions.Value.LogChannelId);
+        await logChannel.SendMessageAsync(embed: embedBuilder.Build());
 
         await FollowupAsync("Success");
     }

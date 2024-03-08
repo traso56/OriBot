@@ -24,9 +24,8 @@ public partial class Basic : InteractionModuleBase<SocketInteractionContext>
     public required MessageUtilities MessageUtilities { get; set; }
     public required VolatileData VolatileData { get; set; }
     public required IHttpClientFactory HttpClientFactory { get; set; }
-    public required IOptionsMonitor<MessageAmountQuerying> MessageAmountQuerying { get; set; }
+    public required IOptions<MessageAmountQuerying> MessageAmountQuerying { get; set; }
     public required IDbContextFactory<SpiritContext> DbContextFactory { get; set; }
-    public required Globals Globals { get; set; }
     public required ILogger<Basic> Logger { get; set; }
 
     [CommandsChannel]
@@ -120,10 +119,10 @@ public partial class Basic : InteractionModuleBase<SocketInteractionContext>
             {
                 HttpClient httpClient = HttpClientFactory.CreateClient();
 
-                string url = $"{MessageAmountQuerying.CurrentValue.ApiUrl}" +
+                string url = $"{MessageAmountQuerying.Value.ApiUrl}" +
                     $"?authorid={user.Id}" +
                     $"&serverid={Context.Guild.Id}" +
-                    $"&userid={MessageAmountQuerying.CurrentValue.UserId}";
+                    $"&userid={MessageAmountQuerying.Value.UserId}";
 
                 string result = await httpClient.GetStringAsync(url);
                 userXp = int.Parse(result);

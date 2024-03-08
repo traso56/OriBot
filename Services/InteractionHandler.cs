@@ -5,6 +5,7 @@ using Discord;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
+using Microsoft.Extensions.Options;
 
 namespace OriBot.Services;
 
@@ -13,19 +14,19 @@ public class InteractionHandler : DiscordClientService
     private readonly IServiceProvider _provider;
     private readonly InteractionService _interactionService;
     private readonly ExceptionReporter _exceptionReporter;
-    private readonly Globals _globals;
     private readonly VolatileData _volatileData;
+    private readonly BotOptions _botOptions;
 
     public InteractionHandler(DiscordSocketClient client, ILogger<InteractionHandler> logger, IServiceProvider provider,
-        InteractionService interactionService, ExceptionReporter exceptionReporter, Globals globals,
-        VolatileData volatileData)
+        InteractionService interactionService, ExceptionReporter exceptionReporter, VolatileData volatileData,
+        IOptions<BotOptions> botOptions)
         : base(client, logger)
     {
         _provider = provider;
         _interactionService = interactionService;
         _exceptionReporter = exceptionReporter;
-        _globals = globals;
         _volatileData = volatileData;
+        _botOptions = botOptions.Value;
     }
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -51,11 +52,11 @@ public class InteractionHandler : DiscordClientService
                 if (result is ExecuteResult executeResult)
                 {
                     bool isSlashCommand = context.Interaction.Type == InteractionType.ApplicationCommand;
-                    string errorMessage = $"There was an internal error, please check the logs, pinging {_globals.Traso.Mention}";
+                    string errorMessage = $"There was an internal error, please check the logs, pinging <@{_botOptions.TrasoId}>";
                     if (executeResult.Exception is DbUpdateConcurrencyException)
-                        errorMessage = $"There was an error updating records in the database, perhaps it was updated elsewhere during this command, pinging {_globals.Traso.Mention}";
+                        errorMessage = $"There was an error updating records in the database, perhaps it was updated elsewhere during this command, pinging <@{_botOptions.TrasoId}>";
                     else if (executeResult.Exception is OverflowException)
-                        errorMessage = executeResult.Exception.Message + $", pinging {_globals.Traso.Mention}";
+                        errorMessage = executeResult.Exception.Message + $", pinging <@{_botOptions.TrasoId}>";
 
                     if (context.Interaction.CreatedAt.AddSeconds(3) < DateTimeOffset.UtcNow)
                     {

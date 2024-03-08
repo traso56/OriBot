@@ -10,8 +10,6 @@ namespace OriBot.Interactive;
 [RequireContext(ContextType.Guild)]
 public class Testing : InteractionModuleBase<SocketInteractionContext>
 {
-    public required Globals Globals { get; set; }
-
     [ModCommand]
     [SlashCommand("throw", "throws")]
     public async Task Throw(bool withResponse)
