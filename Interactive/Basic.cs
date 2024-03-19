@@ -160,7 +160,7 @@ public partial class Basic : InteractionModuleBase<SocketInteractionContext>
             embedBuilder.WithDescription(dbUser.Description);
 
         if (user.GuildPermissions.BanMembers)
-            embedBuilder.AddField($"{Emotes.PoliceCarEmote} StaffMember", "Anti-Fun Enforcement Badge\n\n*I'm a staff member on this server.*", true);
+            embedBuilder.AddField($"{Emotes.PoliceCarEmote} StaffMember", "*Anti-Fun Enforcement Badge*\n\nI'm a staff member on this server.", true);
 
         if (dbUser is not null)
         {
