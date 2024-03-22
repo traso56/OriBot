@@ -196,7 +196,7 @@ public class GuildManagement : InteractionModuleBase<SocketInteractionContext>
         }
         else
         {
-            SocketRole imagesRole = Context.Guild.GetRole(BotOptions.Value.MemberRoleId);
+            SocketRole imagesRole = Context.Guild.GetRole(BotOptions.Value.ImagesRoleId);
 
             await guildUser.AddRoleAsync(imagesRole);
             await FollowupAsync("Images role given successfully", ephemeral: true);
