@@ -77,28 +77,25 @@ public class BackgroundTasks : DiscordClientService
                 {
                     IThreadChannel? thread = await Client.GetChannelAsync(dbTicket.TicketId) as IThreadChannel;
 
-                    bool messageTooOld = false;
+                    bool threadFinished = false;
                     if (thread is not null)
                     {
-                        var message = (await thread.GetMessagesAsync(1).FlattenAsync()).First();
-                        if (message.CreatedAt.AddDays(2) < DateTimeOffset.Now)
+                        if (thread.IsLocked)
                         {
-                            messageTooOld = true;
-                            try
+                            threadFinished = true;
+                        }
+                        else
+                        {
+                            var message = (await thread.GetMessagesAsync(1).FlattenAsync()).First();
+                            if (message.CreatedAt.AddDays(2) < DateTimeOffset.Now)
                             {
+                                threadFinished = true;
                                 await thread.ModifyAsync(t => t.Locked = true);
-                            }
-                            catch (Discord.Net.HttpException e)
-                            {
-                                Logger.LogWarning(e, "There was an issue when processing the thread with ID {id}", thread.Id);
-                                var infoChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.InfoChannelId);
-                                await infoChannel.SendMessageAsync($"There was an issue when processing the thread with ID {thread.Id}\n" +
-                                    e.Message);
                             }
                         }
                     }
 
-                    if (thread is null || messageTooOld)
+                    if (thread is null || threadFinished)
                     {
                         _volatileData.TicketThreads.TryRemove(dbTicket.TicketId, out _);
                         db.Tickets.Remove(dbTicket);
