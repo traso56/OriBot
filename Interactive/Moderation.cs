@@ -652,4 +652,27 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
         // max - 25 suggestions at a time
         await autocompleteInteraction.RespondAsync(filtered.Take(25));
     }
+    [SlashCommand("whois", "Searches for a generic user")]
+    public async Task WhoIs(SocketUser user)
+    {
+        EmbedBuilder embedBuilder = new EmbedBuilder()
+            .WithColor(ColorConstants.SpiritCyan)
+            .AddUserAvatar(user)
+            .WithTitle(user.Username)
+            .AddField("User created on", Utilities.FullDateTimeStamp(user.CreatedAt))
+            .WithFooter($"User ID: {user.Id}");
+
+        if (user.GlobalName is not null)
+            embedBuilder.WithDescription(user.GlobalName);
+
+        var guildUser = user as SocketGuildUser;
+        if (guildUser is not null)
+        {
+            embedBuilder
+                .AddField("Display name", guildUser.DisplayName)
+                .AddField("Joined server on", Utilities.FullDateTimeStamp(guildUser.JoinedAt!.Value));
+        }
+
+        await RespondAsync(embed: embedBuilder.Build());
+    }
 }

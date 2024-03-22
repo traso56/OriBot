@@ -5,8 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using OriBot.Services;
 using OriBot.Utility;
-using System.Net.Sockets;
-using System.Text;
 
 namespace OriBot.Interactive;
 
