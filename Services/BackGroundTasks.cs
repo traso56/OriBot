@@ -84,7 +84,17 @@ public class BackgroundTasks : DiscordClientService
                         if (message.CreatedAt.AddDays(2) < DateTimeOffset.Now)
                         {
                             messageTooOld = true;
-                            await thread.ModifyAsync(t => t.Locked = true);
+                            try
+                            {
+                                await thread.ModifyAsync(t => t.Locked = true);
+                            }
+                            catch (Discord.Net.HttpException e)
+                            {
+                                Logger.LogWarning(e, "There was an issue when processing the thread with ID {id}", thread.Id);
+                                var infoChannel = (ITextChannel)await Client.GetChannelAsync(_botOptions.InfoChannelId);
+                                await infoChannel.SendMessageAsync($"There was an issue when processing the thread with ID {thread.Id}\n" +
+                                    e.Message);
+                            }
                         }
                     }
 
