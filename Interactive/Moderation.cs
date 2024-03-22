@@ -515,7 +515,11 @@ public class Moderation : InteractionModuleBase<SocketInteractionContext>
         }
 
         SocketTextChannel logChannel = Context.Guild.GetTextChannel(BotOptions.Value.LogChannelId);
-        await logChannel.SendMessageAsync(embed: embedBuilder.Build());
+        var logMessage = await logChannel.SendMessageAsync(embed: embedBuilder.Build());
+
+        // forever
+        if (duration is null)
+            await logMessage.ReplyAsync("forever");
 
         await FollowupAsync("Success");
     }
